@@ -799,11 +799,23 @@
                         Token 仅保存在本地浏览器缓存中
                     </p>
                 </div>
-                <div class="modal-actions">
-                    <button class="btn" id="settingsCancel">取消</button>
-                    <button class="btn primary" id="settingsSave">
-                        保存并刷新
+                <div
+                    class="modal-actions"
+                    style="justify-content: space-between"
+                >
+                    <button
+                        class="btn"
+                        id="importUrlBtn"
+                        title="从当前浏览器地址解析配置"
+                    >
+                        从 URL 导入
                     </button>
+                    <div style="display: flex; gap: 12px">
+                        <button class="btn" id="settingsCancel">取消</button>
+                        <button class="btn primary" id="settingsSave">
+                            保存并刷新
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -817,23 +829,18 @@
             class ConfigManager {
                 constructor() {
                     this.config = this.loadConfig();
-                    // 如果 URL 中有参数，优先采用并保存
-                    if (this.autoDetectFromUrl()) {
-                        console.log("检测到 URL 配置，已更新");
+                    // 仅当本地没有配置时，才尝试从 URL 初始化，但不自动保存
+                    if (!this.isValid()) {
+                        const urlCfg = this.autoDetectFromUrl();
+                        if (urlCfg) {
+                            this.config = { ...this.config, ...urlCfg };
+                        }
                     }
                 }
 
                 loadConfig() {
                     const stored = localStorage.getItem("blog_config_v1");
                     if (stored) return JSON.parse(stored);
-
-                    // 兼容旧版配置
-                    const oldStored = localStorage.getItem("blog_config");
-                    if (oldStored) {
-                        const old = JSON.parse(oldStored);
-                        return { ...old, token: "" };
-                    }
-
                     return { username: "", repo: "", path: "", token: "" };
                 }
 
@@ -870,7 +877,7 @@
                         token = params.get("token") || "";
                     }
 
-                    // 2. Hash 路由支持 #/user/repo/path
+                    // 2. Hash 路由
                     const hash = window.location.hash.slice(1);
                     if (!username && hash && hash.startsWith("/")) {
                         const parts = hash.split("/").filter((p) => p);
@@ -881,11 +888,10 @@
                         }
                     }
 
-                    // 3. GitHub Pages 域名解析
+                    // 3. GitHub Pages 域名
                     if (!username) {
                         const hostname = url.hostname;
                         const pathname = url.pathname.replace(/\/$/, "");
-
                         if (hostname.endsWith(".github.io")) {
                             username = hostname.split(".")[0];
                             const parts = pathname.split("/").filter((p) => p);
@@ -893,27 +899,13 @@
                                 repo = parts[0];
                                 path = parts.slice(1).join("/");
                             }
-                        } else if (hostname === "github.com") {
-                            const parts = pathname.split("/").filter((p) => p);
-                            if (parts.length >= 2) {
-                                username = parts[0];
-                                repo = parts[1];
-                                path = parts.slice(2).join("/");
-                            }
                         }
                     }
 
                     if (username && repo) {
-                        const newConfig = {
-                            username,
-                            repo,
-                            path: path || this.config.path,
-                        };
-                        if (token) newConfig.token = token;
-                        this.saveConfig(newConfig);
-                        return true;
+                        return { username, repo, path, token };
                     }
-                    return false;
+                    return null;
                 }
 
                 getApiUrl(subPath = "") {
@@ -1137,6 +1129,26 @@
                         this.saveSettings();
                     document.getElementById("settingsCancel").onclick = () =>
                         this.hideModal();
+
+                    document.getElementById("importUrlBtn").onclick = () => {
+                        const urlCfg = this.configManager.autoDetectFromUrl();
+                        if (urlCfg) {
+                            document.getElementById("githubUsername").value =
+                                urlCfg.username;
+                            document.getElementById("githubRepo").value =
+                                urlCfg.repo;
+                            document.getElementById("githubPath").value =
+                                urlCfg.path;
+                            if (urlCfg.token)
+                                document.getElementById("githubToken").value =
+                                    urlCfg.token;
+                            this.showToast(
+                                "已从 URL 提取配置，请确认后点击保存",
+                            );
+                        } else {
+                            this.showToast("当前 URL 未包含有效的仓库信息");
+                        }
+                    };
 
                     document.addEventListener("keydown", (e) => {
                         if (e.key === "Escape") {
