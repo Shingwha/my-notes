@@ -8,6 +8,11 @@
         <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
         <link
             rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <link
+            rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css"
         />
         <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
@@ -458,6 +463,18 @@
                 margin: 1.5em 0;
 
                 display: block;
+            }
+
+            /* KaTeX Custom Styles */
+            .katex-display {
+                margin: 1.2em 0 !important;
+                overflow-x: auto;
+                overflow-y: hidden;
+                scrollbar-width: thin;
+            }
+            .katex {
+                font-size: 1.1em;
+                color: inherit;
             }
 
             /* Components */
@@ -1091,6 +1108,71 @@
                 }
 
                 init() {
+                    // 1. 块级公式扩展 ($$ ... $$)
+                    const blockMath = {
+                        name: "blockMath",
+                        level: "block",
+                        start(src) {
+                            return src.indexOf("$$");
+                        },
+                        tokenizer(src, tokens) {
+                            const cap = /^\$\$([\s\S]+?)\$\$/.exec(src);
+                            if (cap) {
+                                return {
+                                    type: "blockMath",
+                                    raw: cap[0],
+                                    text: cap[1].trim(),
+                                };
+                            }
+                        },
+                        renderer(token) {
+                            return `<div class="katex-display-wrapper">${katex.renderToString(token.text, { displayMode: true, throwOnError: false })}</div>`;
+                        },
+                    };
+
+                    // 2. 行内公式扩展 ($ ... $)
+                    const inlineMath = {
+                        name: "inlineMath",
+                        level: "inline",
+                        start(src) {
+                            return src.indexOf("$");
+                        },
+                        tokenizer(src, tokens) {
+                            const cap = /^\$((?:[^\$]|\\\$)+?)\$/.exec(src);
+                            if (cap) {
+                                return {
+                                    type: "inlineMath",
+                                    raw: cap[0],
+                                    text: cap[1].trim(),
+                                };
+                            }
+                        },
+                        renderer(token) {
+                            return katex.renderToString(token.text, {
+                                displayMode: false,
+                                throwOnError: false,
+                            });
+                        },
+                    };
+
+                    marked.use({ extensions: [blockMath, inlineMath] });
+
+                    // 配置 marked 全局选项
+                    marked.setOptions({
+                        highlight: function (code, lang) {
+                            if (window.Prism && Prism.languages[lang]) {
+                                return Prism.highlight(
+                                    code,
+                                    Prism.languages[lang],
+                                    lang,
+                                );
+                            }
+                            return code;
+                        },
+                        breaks: true,
+                        gfm: true,
+                    });
+
                     this.bindEvents();
                     if (this.configManager.isValid()) {
                         this.refreshData();
@@ -1376,22 +1458,8 @@
                 }
 
                 renderMarkdown(md) {
-                    marked.setOptions({
-                        highlight: function (code, lang) {
-                            if (window.Prism && Prism.languages[lang]) {
-                                return Prism.highlight(
-                                    code,
-                                    Prism.languages[lang],
-                                    lang,
-                                );
-                            }
-                            return code;
-                        },
-                        breaks: true,
-                        gfm: true,
-                    });
-
                     this.dom.contentArea.innerHTML = `<div class="markdown-body">${marked.parse(md)}</div>`;
+
                     if (window.Prism) {
                         this.dom.contentArea
                             .querySelectorAll("pre code")
