@@ -481,6 +481,17 @@
                         this.hideModal("settingsModal");
                     document.getElementById("refreshBtn").onclick = () =>
                         this.refreshData();
+                    document.getElementById("githubBtn").onclick = () => {
+                        if (this.configManager.isValid()) {
+                            window.open(
+                                this.configManager.getRepoUrl(),
+                                "_blank",
+                            );
+                        } else {
+                            this.showToast("请先配置GitHub仓库");
+                            setTimeout(() => this.showSettings(), 500);
+                        }
+                    };
                 }
                 showToast(msg) {
                     const t = document.getElementById("toast");
