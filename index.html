@@ -960,8 +960,17 @@
                     const url = `https://api.github.com/repos/${username}/${repo}/git/trees/HEAD?recursive=1`;
 
                     const res = await fetch(url, { headers: this.headers });
-                    if (!res.ok)
-                        throw new Error("无法索引仓库，请检查配置或 Token");
+                    if (!res.ok) {
+                        const errorMsg =
+                            res.status === 401
+                                ? "Token 无效或已过期"
+                                : res.status === 404
+                                  ? "找不到仓库，请检查用户名和仓库名"
+                                  : res.status === 403
+                                    ? "权限不足或触发 API 限流"
+                                    : `请求失败 (代码: ${res.status})`;
+                        throw new Error(`无法索引仓库: ${errorMsg}`);
+                    }
 
                     const data = await res.json();
 
@@ -1040,10 +1049,28 @@
                     return result;
                 }
 
-                async getRawContent(url) {
-                    const res = await fetch(url, { headers: this.headers });
-                    if (!res.ok) throw new Error("无法获取文件内容");
-                    return await res.text();
+                async getRawContent(item) {
+                    const { username, repo } = this.configManager.config;
+                    const hasToken = !!this.configManager.config.token;
+
+                    // 如果有 Token (私有仓库)，必须通过 API 域名获取，否则会触发 CORS 错误
+                    if (hasToken) {
+                        const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${item.path}`;
+                        const res = await fetch(apiUrl, {
+                            headers: {
+                                ...this.headers,
+                                Accept: "application/vnd.github.v3.raw", // 关键：要求返回原始文本而非 JSON
+                            },
+                        });
+                        if (!res.ok) throw new Error(`API 错误: ${res.status}`);
+                        return await res.text();
+                    } else {
+                        // 公有仓库直接走 raw 域名，不带任何 Headers 避免跨域问题
+                        const res = await fetch(item.download_url);
+                        if (!res.ok)
+                            throw new Error(`文件获取失败: ${res.status}`);
+                        return await res.text();
+                    }
                 }
             }
 
@@ -1277,9 +1304,7 @@
                     `;
 
                     try {
-                        const raw = await this.dataManager.getRawContent(
-                            item.download_url,
-                        );
+                        const raw = await this.dataManager.getRawContent(item);
                         this.renderMarkdown(raw);
                         this.dom.contentViewport.scrollTop = 0;
                     } catch (e) {
