@@ -324,6 +324,297 @@
             .toast.show {
                 opacity: 1;
             }
+
+            /* 移动端适配样式 */
+            .mobile-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 90;
+                opacity: 0;
+                transition: opacity 0.3s;
+            }
+
+            .mobile-overlay.active {
+                display: block;
+                opacity: 1;
+            }
+
+            /* 平板和手机适配 (≤ 1024px) */
+            @media screen and (max-width: 1024px) {
+                .sidebar {
+                    transform: translateX(-100%);
+                    transition: transform 0.3s ease-in-out;
+                    width: 280px;
+                }
+
+                .sidebar.open {
+                    transform: translateX(0);
+                }
+
+                .main-content {
+                    margin-left: 0;
+                }
+
+                .mobile-menu-btn {
+                    display: flex !important;
+                }
+
+                .content-area {
+                    padding: 20px 16px;
+                    max-width: 100%;
+                }
+
+                .toolbar {
+                    padding: 0 12px;
+                    height: 50px;
+                }
+
+                .toolbar-title {
+                    font-size: 14px;
+                }
+
+                .btn {
+                    padding: 4px 8px;
+                    font-size: 13px;
+                }
+
+                .icon-btn {
+                    width: 32px;
+                    height: 32px;
+                }
+
+                /* 优化 Markdown 内容显示 */
+                .markdown-body {
+                    font-size: 14px;
+                    line-height: 1.7;
+                }
+
+                .markdown-body h1 {
+                    font-size: 24px;
+                }
+
+                .markdown-body h2 {
+                    font-size: 20px;
+                }
+
+                .markdown-body h3 {
+                    font-size: 17px;
+                }
+
+                .markdown-body pre {
+                    padding: 12px;
+                    font-size: 13px;
+                }
+
+                .markdown-body code {
+                    font-size: 13px;
+                }
+
+                .markdown-body table {
+                    font-size: 13px;
+                }
+
+                .markdown-body th,
+                .markdown-body td {
+                    padding: 6px 8px;
+                }
+
+                .nav-item-content {
+                    padding: 8px 16px;
+                    min-height: 40px; /* 增大点击区域 */
+                }
+
+                .nav-text {
+                    font-size: 14px;
+                }
+
+                /* 模态框适配 */
+                .modal {
+                    width: 95%;
+                    padding: 20px;
+                }
+
+                .form-input {
+                    padding: 10px 12px;
+                    font-size: 14px;
+                }
+
+                .btn {
+                    min-height: 36px; /* 增大触摸区域 */
+                }
+
+                /* Toast 位置调整 */
+                .toast {
+                    bottom: 10px;
+                    right: 10px;
+                    left: 10px;
+                    text-align: center;
+                }
+            }
+
+            /* 手机专用适配 (≤ 768px) */
+            @media screen and (max-width: 768px) {
+                .sidebar-header {
+                    padding: 16px 12px;
+                }
+
+                .logo {
+                    font-size: 13px;
+                }
+
+                .content-area {
+                    padding: 16px 12px;
+                }
+
+                .toolbar {
+                    padding: 0 8px;
+                }
+
+                .header-actions {
+                    gap: 6px;
+                }
+
+                /* 优化导航树显示 */
+                .nav-children {
+                    margin-left: 8px;
+                }
+
+                /* 确保按钮在移动端易于点击 */
+                .icon-btn,
+                .btn {
+                    min-width: 36px;
+                }
+
+                /* 模态框全屏优化 */
+                .modal {
+                    width: 100%;
+                    height: 100%;
+                    max-width: none;
+                    border-radius: 0;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                }
+
+                .modal-actions {
+                    display: flex;
+                    gap: 8px;
+                    margin-top: 16px;
+                }
+
+                .modal-actions .btn {
+                    flex: 1;
+                }
+            }
+
+            /* 超小屏幕适配 (≤ 480px) */
+            @media screen and (max-width: 480px) {
+                .markdown-body h1 {
+                    font-size: 22px;
+                }
+
+                .markdown-body h2 {
+                    font-size: 18px;
+                }
+
+                .markdown-body h3 {
+                    font-size: 16px;
+                }
+
+                .markdown-body {
+                    font-size: 13px;
+                }
+
+                .toolbar-title {
+                    font-size: 13px;
+                    max-width: 150px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
+                .btn span {
+                    display: none; /* 隐藏按钮文字，只显示图标 */
+                }
+
+                .btn {
+                    padding: 4px 6px;
+                }
+            }
+
+            /* 触摸设备优化 */
+            @media (hover: none) and (pointer: coarse) {
+                .nav-item-content:hover,
+                .icon-btn:hover,
+                .btn:hover {
+                    background: inherit; /* 移除 hover 效果 */
+                }
+
+                .nav-item-content:active,
+                .icon-btn:active,
+                .btn:active {
+                    opacity: 0.7; /* 添加点击反馈 */
+                }
+
+                /* 增大所有可点击元素的触摸区域 */
+                .nav-item-content {
+                    padding: 10px 16px;
+                }
+
+                .icon-btn {
+                    margin: 2px; /* 增加外部间距 */
+                }
+            }
+
+            /* 防止移动端双击缩放 */
+            @media (max-width: 1024px) {
+                button,
+                .icon-btn,
+                .btn,
+                .nav-item-content {
+                    touch-action: manipulation;
+                }
+            }
+
+            /* 移动端键盘弹出时的布局优化 */
+            @media (max-width: 768px) {
+                /* 防止输入框被键盘遮挡 */
+                .form-input:focus {
+                    font-size: 16px; /* iOS 防止缩放 */
+                }
+
+                /* 确保模态框在键盘弹出时能滚动 */
+                .modal-overlay.active {
+                    overflow: auto;
+                    -webkit-overflow-scrolling: touch;
+                }
+
+                .modal {
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    -webkit-overflow-scrolling: touch;
+                }
+            }
+
+            /* 优化 iOS Safari 的滚动行为 */
+            @supports (-webkit-touch-callout: none) {
+                @media (max-width: 1024px) {
+                    body {
+                        -webkit-overflow-scrolling: touch;
+                    }
+
+                    .sidebar,
+                    .main-content,
+                    .modal {
+                        -webkit-overflow-scrolling: touch;
+                    }
+                }
+            }
         </style>
     </head>
     <body>
@@ -347,7 +638,7 @@
                 <div class="toolbar">
                     <div class="toolbar-left">
                         <button
-                            class="icon-btn"
+                            class="icon-btn mobile-menu-btn"
                             id="mobileMenuBtn"
                             style="display: none"
                         >
@@ -369,7 +660,6 @@
 
         <div class="modal-overlay" id="settingsModal">
             <div class="modal">
-                <div class="modal-title">GitHub 仓库配置</div>
                 <div class="form-group">
                     <label class="form-label">GitHub 用户名</label>
                     <input type="text" class="form-input" id="githubUsername" />
@@ -568,6 +858,126 @@
                             setTimeout(() => this.showSettings(), 500);
                         }
                     };
+
+                    // 移动端菜单交互
+                    const mobileMenuBtn =
+                        document.getElementById("mobileMenuBtn");
+                    const sidebar = document.getElementById("sidebar");
+                    const mobileOverlay =
+                        document.getElementById("mobileOverlay");
+
+                    if (mobileMenuBtn) {
+                        mobileMenuBtn.onclick = () => {
+                            sidebar.classList.toggle("open");
+                            mobileOverlay.classList.toggle("active");
+                        };
+                    }
+
+                    if (mobileOverlay) {
+                        mobileOverlay.onclick = () => {
+                            sidebar.classList.remove("open");
+                            mobileOverlay.classList.remove("active");
+                        };
+                    }
+
+                    // 点击导航项后自动关闭移动端菜单
+                    document.addEventListener("click", (e) => {
+                        if (
+                            e.target.closest(".nav-item-content") &&
+                            window.innerWidth <= 1024
+                        ) {
+                            // 检查是否是文件（不是文件夹）
+                            const navItem = e.target.closest(".nav-item");
+                            if (navItem) {
+                                const toggle =
+                                    navItem.querySelector(".nav-toggle");
+                                // 如果没有 toggle 说明是文件，点击后关闭菜单
+                                if (!toggle || toggle.textContent === "") {
+                                    setTimeout(() => {
+                                        sidebar.classList.remove("open");
+                                        mobileOverlay.classList.remove(
+                                            "active",
+                                        );
+                                    }, 300);
+                                }
+                            }
+                        }
+                    });
+
+                    // 窗口大小改变时重置菜单状态
+                    window.addEventListener("resize", () => {
+                        if (window.innerWidth > 1024) {
+                            sidebar.classList.remove("open");
+                            mobileOverlay.classList.remove("active");
+                            document.body.style.overflow = "";
+                        }
+                    });
+
+                    // 防止移动端菜单打开时页面滚动
+                    const toggleBodyScroll = (disable) => {
+                        document.body.style.overflow = disable ? "hidden" : "";
+                    };
+
+                    // 监听菜单状态变化，控制页面滚动
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (
+                                mutation.type === "attributes" &&
+                                mutation.attributeName === "class"
+                            ) {
+                                const isOpen =
+                                    sidebar.classList.contains("open");
+                                toggleBodyScroll(isOpen);
+                            }
+                        });
+                    });
+
+                    if (sidebar) {
+                        observer.observe(sidebar, { attributes: true });
+                    }
+
+                    // 模态框交互优化
+                    const settingsModal =
+                        document.getElementById("settingsModal");
+                    if (settingsModal) {
+                        // 点击遮罩层关闭模态框
+                        settingsModal.onclick = (e) => {
+                            if (e.target === settingsModal) {
+                                this.hideModal("settingsModal");
+                            }
+                        };
+
+                        // ESC 键关闭模态框
+                        document.addEventListener("keydown", (e) => {
+                            if (e.key === "Escape") {
+                                if (
+                                    settingsModal.classList.contains("active")
+                                ) {
+                                    this.hideModal("settingsModal");
+                                }
+                                // 同时关闭移动端菜单
+                                if (sidebar.classList.contains("open")) {
+                                    sidebar.classList.remove("open");
+                                    mobileOverlay.classList.remove("active");
+                                }
+                            }
+                        });
+
+                        // 移动端模态框触摸优化
+                        if (window.innerWidth <= 768) {
+                            const modalContent =
+                                settingsModal.querySelector(".modal");
+                            if (modalContent) {
+                                // 防止模态框内容滚动时穿透到背景
+                                modalContent.addEventListener(
+                                    "touchmove",
+                                    (e) => {
+                                        e.stopPropagation();
+                                    },
+                                );
+                            }
+                        }
+                    }
                 }
                 showToast(msg) {
                     const t = document.getElementById("toast");
@@ -605,8 +1015,10 @@
                 async refreshData() {
                     if (!this.configManager.isValid()) return;
                     const tree = document.getElementById("navTree");
-                    tree.innerHTML =
-                        "<div style='padding:16px'>加载中...</div>";
+                    // 移动端优化加载提示
+                    const loadingMsg =
+                        window.innerWidth <= 768 ? "加载中..." : "加载中...";
+                    tree.innerHTML = `<div style='padding:16px; text-align: center; color: var(--text-tertiary);'>${loadingMsg}</div>`;
                     try {
                         const data = await this.dataManager.fetchPath();
                         this.renderTree(tree, data);
@@ -696,7 +1108,14 @@
                     document.getElementById("toolbarTitle").innerText =
                         item.name;
                     const area = document.getElementById("contentArea");
-                    area.innerHTML = "读取内容中...";
+
+                    // 移动端显示加载状态优化
+                    const loadingText =
+                        window.innerWidth <= 768
+                            ? "加载中..."
+                            : "读取内容中...";
+                    area.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-tertiary);">${loadingText}</div>`;
+
                     try {
                         const md = await this.dataManager.getRaw(
                             item.download_url,
@@ -704,9 +1123,18 @@
                         // 使用 requestAnimationFrame 优化渲染
                         requestAnimationFrame(() => {
                             area.innerHTML = `<div class="markdown-body">${marked.parse(md)}</div>`;
+                            // 移动端自动滚动到顶部
+                            if (window.innerWidth <= 1024) {
+                                area.scrollTop = 0;
+                            }
                         });
                     } catch (e) {
-                        area.innerHTML = "读取失败";
+                        // 移动端错误提示优化
+                        const errorText =
+                            window.innerWidth <= 768
+                                ? "加载失败"
+                                : "读取失败，请重试";
+                        area.innerHTML = `<div style="padding: 20px; text-align: center; color: #ef4444;">${errorText}</div>`;
                     }
                 }
             }
