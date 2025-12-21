@@ -1,0 +1,1274 @@
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>极简博客 - GitHub Pages</title>
+        <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            :root {
+                --bg-primary: #0a0a0a;
+                --bg-secondary: #141414;
+                --bg-tertiary: #1a1a1a;
+                --border-color: #27272a;
+                --text-primary: #fafafa;
+                --text-secondary: #a1a1aa;
+                --text-tertiary: #71717a;
+                --accent-color: #3b82f6;
+                --hover-bg: #1f1f22;
+                --active-bg: #27272a;
+                --active-border: #3b82f6;
+            }
+
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    sans-serif;
+                background: var(--bg-primary);
+                color: var(--text-primary);
+                overflow: hidden;
+                height: 100vh;
+            }
+
+            /* Layout */
+            .container {
+                display: flex;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            /* Sidebar */
+            .sidebar {
+                width: 280px;
+                background: var(--bg-secondary);
+                border-right: 1px solid var(--border-color);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            .sidebar-header {
+                padding: 20px 16px;
+                border-bottom: 1px solid var(--border-color);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .logo {
+                font-size: 14px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                color: var(--text-primary);
+            }
+
+            .header-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .icon-btn {
+                width: 28px;
+                height: 28px;
+                border: 1px solid var(--border-color);
+                background: transparent;
+                color: var(--text-secondary);
+                border-radius: 4px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+                transition: all 0.2s;
+            }
+
+            .icon-btn:hover {
+                background: var(--hover-bg);
+                color: var(--text-primary);
+                border-color: var(--text-tertiary);
+            }
+
+            .nav-tree {
+                flex: 1;
+                overflow-y: auto;
+                padding: 8px 0;
+            }
+
+            .nav-item {
+                position: relative;
+            }
+
+            .nav-item-content {
+                display: flex;
+                align-items: center;
+                padding: 6px 16px;
+                cursor: pointer;
+                user-select: none;
+                transition: background 0.15s;
+                border-left: 2px solid transparent;
+            }
+
+            .nav-item-content:hover {
+                background: var(--hover-bg);
+            }
+
+            .nav-item-content.active {
+                background: var(--active-bg);
+                border-left-color: var(--active-border);
+                color: var(--text-primary);
+            }
+
+            .nav-item-content.active .nav-text {
+                color: var(--text-primary);
+                font-weight: 500;
+            }
+
+            .nav-toggle {
+                width: 16px;
+                height: 16px;
+                margin-right: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--text-tertiary);
+                font-size: 10px;
+                transition: transform 0.2s;
+            }
+
+            .nav-toggle.expanded {
+                transform: rotate(90deg);
+            }
+
+            .nav-icon {
+                width: 16px;
+                height: 16px;
+                margin-right: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--text-tertiary);
+                font-size: 12px;
+            }
+
+            .nav-text {
+                flex: 1;
+                font-size: 13px;
+                color: var(--text-secondary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .nav-children {
+                margin-left: 24px;
+                border-left: 1px solid var(--border-color);
+                overflow: hidden;
+                max-height: 0;
+                opacity: 0;
+                transition:
+                    max-height 0.3s ease,
+                    opacity 0.3s ease;
+            }
+
+            .nav-children.expanded {
+                max-height: 2000px;
+                opacity: 1;
+            }
+
+            /* Main Content */
+            .main-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                background: var(--bg-primary);
+            }
+
+            .toolbar {
+                height: 56px;
+                border-bottom: 1px solid var(--border-color);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 24px;
+                background: var(--bg-secondary);
+            }
+
+            .toolbar-left {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .toolbar-title {
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--text-primary);
+            }
+
+            .toolbar-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .btn {
+                padding: 6px 12px;
+                border: 1px solid var(--border-color);
+                background: transparent;
+                color: var(--text-secondary);
+                border-radius: 4px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .btn:hover {
+                background: var(--hover-bg);
+                color: var(--text-primary);
+                border-color: var(--text-tertiary);
+            }
+
+            .btn.primary {
+                background: var(--accent-color);
+                color: white;
+                border-color: var(--accent-color);
+            }
+
+            .btn.primary:hover {
+                background: #2563eb;
+                border-color: #2563eb;
+            }
+
+            .content-area {
+                flex: 1;
+                overflow-y: auto;
+                padding: 32px 48px;
+                max-width: 900px;
+                margin: 0 auto;
+                width: 100%;
+            }
+
+            /* Markdown Styles */
+            .markdown-body {
+                line-height: 1.7;
+                font-size: 15px;
+                color: var(--text-primary);
+            }
+
+            .markdown-body h1 {
+                font-size: 32px;
+                font-weight: 700;
+                margin-bottom: 24px;
+                line-height: 1.2;
+                border-bottom: 1px solid var(--border-color);
+                padding-bottom: 12px;
+            }
+
+            .markdown-body h2 {
+                font-size: 24px;
+                font-weight: 600;
+                margin: 32px 0 16px;
+                line-height: 1.3;
+            }
+
+            .markdown-body h3 {
+                font-size: 18px;
+                font-weight: 600;
+                margin: 24px 0 12px;
+                line-height: 1.4;
+            }
+
+            .markdown-body p {
+                margin-bottom: 16px;
+                color: var(--text-secondary);
+            }
+
+            .markdown-body ul,
+            .markdown-body ol {
+                margin-bottom: 16px;
+                padding-left: 24px;
+            }
+
+            .markdown-body li {
+                margin-bottom: 8px;
+                color: var(--text-secondary);
+            }
+
+            .markdown-body code {
+                background: var(--bg-tertiary);
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-family: "Monaco", "Courier New", monospace;
+                font-size: 13px;
+                color: var(--text-primary);
+            }
+
+            .markdown-body pre {
+                background: var(--bg-tertiary);
+                padding: 16px;
+                border-radius: 6px;
+                overflow-x: auto;
+                margin-bottom: 16px;
+                border: 1px solid var(--border-color);
+            }
+
+            .markdown-body pre code {
+                background: none;
+                padding: 0;
+            }
+
+            .markdown-body blockquote {
+                border-left: 3px solid var(--accent-color);
+                padding-left: 16px;
+                margin-bottom: 16px;
+                color: var(--text-secondary);
+                font-style: italic;
+            }
+
+            .markdown-body a {
+                color: var(--accent-color);
+                text-decoration: none;
+                border-bottom: 1px solid transparent;
+                transition: border-color 0.2s;
+            }
+
+            .markdown-body a:hover {
+                border-bottom-color: var(--accent-color);
+            }
+
+            .markdown-body table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 16px;
+                border: 1px solid var(--border-color);
+            }
+
+            .markdown-body th,
+            .markdown-body td {
+                padding: 8px 12px;
+                border: 1px solid var(--border-color);
+                text-align: left;
+            }
+
+            .markdown-body th {
+                background: var(--bg-tertiary);
+                font-weight: 600;
+            }
+
+            /* Empty State */
+            .empty-state {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                color: var(--text-tertiary);
+                text-align: center;
+                padding: 40px;
+            }
+
+            .empty-state-icon {
+                font-size: 48px;
+                margin-bottom: 16px;
+                opacity: 0.5;
+            }
+
+            .empty-state-title {
+                font-size: 18px;
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: var(--text-secondary);
+            }
+
+            .empty-state-desc {
+                font-size: 14px;
+                max-width: 400px;
+                line-height: 1.5;
+            }
+
+            /* Modal */
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+                backdrop-filter: blur(4px);
+            }
+
+            .modal-overlay.active {
+                display: flex;
+            }
+
+            .modal {
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                width: 90%;
+                max-width: 500px;
+                padding: 24px;
+            }
+
+            .modal-title {
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 16px;
+            }
+
+            .modal-content {
+                margin-bottom: 20px;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            .form-label {
+                display: block;
+                font-size: 12px;
+                color: var(--text-secondary);
+                margin-bottom: 6px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .form-input {
+                width: 100%;
+                padding: 8px 12px;
+                background: var(--bg-tertiary);
+                border: 1px solid var(--border-color);
+                border-radius: 4px;
+                color: var(--text-primary);
+                font-size: 14px;
+                outline: none;
+                transition: border-color 0.2s;
+            }
+
+            .form-input:focus {
+                border-color: var(--accent-color);
+            }
+
+            .modal-actions {
+                display: flex;
+                gap: 8px;
+                justify-content: flex-end;
+            }
+
+            /* Loading */
+            .loading {
+                display: inline-block;
+                width: 14px;
+                height: 14px;
+                border: 2px solid var(--border-color);
+                border-top-color: var(--accent-color);
+                border-radius: 50%;
+                animation: spin 0.6s linear infinite;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* Mobile Responsive */
+            @media (max-width: 768px) {
+                .sidebar {
+                    position: fixed;
+                    left: 0;
+                    top: 0;
+                    bottom: 0;
+                    z-index: 100;
+                    transform: translateX(-100%);
+                    transition: transform 0.3s ease;
+                }
+
+                .sidebar.mobile-open {
+                    transform: translateX(0);
+                }
+
+                .mobile-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.7);
+                    display: none;
+                    z-index: 99;
+                }
+
+                .mobile-overlay.active {
+                    display: block;
+                }
+
+                .content-area {
+                    padding: 24px 20px;
+                }
+
+                .toolbar {
+                    padding: 0 16px;
+                }
+
+                .logo {
+                    font-size: 12px;
+                }
+
+                .btn span {
+                    display: none;
+                }
+            }
+
+            /* Scrollbar */
+            ::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: var(--bg-primary);
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: var(--border-color);
+                border-radius: 4px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--text-tertiary);
+            }
+
+            /* Toast */
+            .toast {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
+                padding: 12px 16px;
+                font-size: 13px;
+                color: var(--text-primary);
+                z-index: 2000;
+                opacity: 0;
+                transform: translateY(20px);
+                transition: all 0.3s ease;
+                pointer-events: none;
+            }
+
+            .toast.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .toast.success {
+                border-color: #10b981;
+                color: #10b981;
+            }
+
+            .toast.error {
+                border-color: #ef4444;
+                color: #ef4444;
+            }
+
+            .toast.info {
+                border-color: var(--accent-color);
+                color: var(--accent-color);
+            }
+
+            /* Config Banner */
+            .config-banner {
+                background: var(--bg-tertiary);
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
+                padding: 16px;
+                margin-bottom: 20px;
+            }
+
+            .config-banner h3 {
+                font-size: 14px;
+                margin-bottom: 8px;
+                color: var(--text-primary);
+            }
+
+            .config-banner p {
+                font-size: 13px;
+                color: var(--text-secondary);
+                margin-bottom: 12px;
+            }
+
+            .config-banner code {
+                background: var(--bg-primary);
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-size: 12px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="logo">BLOG</div>
+                    <div class="header-actions">
+                        <button class="icon-btn" id="refreshBtn" title="刷新">
+                            ↻
+                        </button>
+                        <button class="icon-btn" id="settingsBtn" title="配置">
+                            ⚙
+                        </button>
+                    </div>
+                </div>
+                <div class="nav-tree" id="navTree">
+                    <!-- Navigation items will be rendered here -->
+                </div>
+            </aside>
+
+            <!-- Mobile Overlay -->
+            <div class="mobile-overlay" id="mobileOverlay"></div>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <button
+                            class="icon-btn"
+                            id="mobileMenuBtn"
+                            style="display: none"
+                        >
+                            ☰
+                        </button>
+                        <div class="toolbar-title" id="toolbarTitle">
+                            欢迎使用
+                        </div>
+                    </div>
+                    <div class="toolbar-actions">
+                        <button class="btn" id="githubBtn">
+                            <span>🔗</span><span>GitHub</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="content-area" id="contentArea">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div class="empty-state-title">极简博客系统</div>
+                        <div class="empty-state-desc">
+                            一个纯静态的 GitHub Pages 博客系统
+                            <br /><br />
+                            点击右上角 ⚙ 配置你的 GitHub 仓库
+                            <br />
+                            或查看使用说明了解详情
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Settings Modal -->
+        <div class="modal-overlay" id="settingsModal">
+            <div class="modal">
+                <div class="modal-title">GitHub 仓库配置</div>
+                <div class="modal-content">
+                    <div class="config-banner">
+                        <h3>💡 使用说明</h3>
+                        <p>1. 在 GitHub 创建公开仓库</p>
+                        <p>2. 上传 <code>.md</code> 文件到仓库</p>
+                        <p>3. 填写下方配置信息</p>
+                        <p>4. 点击保存并刷新</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">GitHub 用户名</label>
+                        <input
+                            type="text"
+                            class="form-input"
+                            id="githubUsername"
+                            placeholder="your-username"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">仓库名称</label>
+                        <input
+                            type="text"
+                            class="form-input"
+                            id="githubRepo"
+                            placeholder="your-repo"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">文档路径 (可选)</label>
+                        <input
+                            type="text"
+                            class="form-input"
+                            id="githubPath"
+                            placeholder="docs/ 或 blog/"
+                        />
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" id="settingsCancel">取消</button>
+                    <button class="btn primary" id="settingsSave">
+                        保存配置
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="toast" id="toast"></div>
+
+        <script>
+            // 配置管理
+            class ConfigManager {
+                constructor() {
+                    this.config = this.loadConfig();
+                }
+
+                loadConfig() {
+                    const stored = localStorage.getItem("blog_config");
+                    if (stored) {
+                        return JSON.parse(stored);
+                    }
+                    return {
+                        username: "",
+                        repo: "",
+                        path: "",
+                    };
+                }
+
+                saveConfig(config) {
+                    this.config = { ...this.config, ...config };
+                    localStorage.setItem(
+                        "blog_config",
+                        JSON.stringify(this.config),
+                    );
+                }
+
+                isValid() {
+                    return this.config.username && this.config.repo;
+                }
+
+                getApiUrl() {
+                    const { username, repo, path } = this.config;
+                    const baseUrl = `https://api.github.com/repos/${username}/${repo}/contents`;
+                    return path ? `${baseUrl}/${path}` : baseUrl;
+                }
+
+                getRepoUrl() {
+                    const { username, repo } = this.config;
+                    return `https://github.com/${username}/${repo}`;
+                }
+            }
+
+            // 数据管理器
+            class DataManager {
+                constructor(configManager) {
+                    this.configManager = configManager;
+                    this.cache = new Map();
+                }
+
+                async fetchContent() {
+                    if (!this.configManager.isValid()) {
+                        throw new Error("请先配置 GitHub 仓库");
+                    }
+
+                    const url = this.configManager.getApiUrl();
+                    const cacheKey = url;
+
+                    // 检查缓存
+                    if (this.cache.has(cacheKey)) {
+                        return this.cache.get(cacheKey);
+                    }
+
+                    try {
+                        const response = await fetch(url);
+                        if (!response.ok) {
+                            throw new Error(
+                                `HTTP ${response.status}: ${response.statusText}`,
+                            );
+                        }
+
+                        const data = await response.json();
+
+                        // 处理数据结构
+                        const processed = this.processGitHubData(data);
+                        this.cache.set(cacheKey, processed);
+
+                        return processed;
+                    } catch (error) {
+                        throw new Error(`获取数据失败: ${error.message}`);
+                    }
+                }
+
+                processGitHubData(data) {
+                    // 将 GitHub API 数据转换为树形结构
+                    if (!Array.isArray(data)) {
+                        // 单个文件
+                        if (data.type === "file" && data.name.endsWith(".md")) {
+                            return [
+                                {
+                                    type: "file",
+                                    name: data.name,
+                                    path: data.path,
+                                    download_url: data.download_url,
+                                },
+                            ];
+                        }
+                        return [];
+                    }
+
+                    // 目录内容
+                    return data
+                        .filter(
+                            (item) =>
+                                item.type === "file" || item.type === "dir",
+                        )
+                        .map((item) => {
+                            if (
+                                item.type === "file" &&
+                                item.name.endsWith(".md")
+                            ) {
+                                return {
+                                    type: "file",
+                                    name: item.name.replace(".md", ""),
+                                    path: item.path,
+                                    download_url: item.download_url,
+                                };
+                            } else if (item.type === "dir") {
+                                return {
+                                    type: "folder",
+                                    name: item.name,
+                                    path: item.path,
+                                    children: [], // 延迟加载
+                                };
+                            }
+                            return null;
+                        })
+                        .filter((item) => item !== null);
+                }
+
+                async fetchFileContent(downloadUrl) {
+                    try {
+                        const response = await fetch(downloadUrl);
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                        return await response.text();
+                    } catch (error) {
+                        throw new Error(`获取文件内容失败: ${error.message}`);
+                    }
+                }
+
+                async fetchFolderChildren(folderPath) {
+                    const { username, repo } = this.configManager.config;
+                    const url = `https://api.github.com/repos/${username}/${repo}/contents/${folderPath}`;
+
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    return this.processGitHubData(data);
+                }
+
+                clearCache() {
+                    this.cache.clear();
+                }
+            }
+
+            // UI 管理器
+            class UIManager {
+                constructor(configManager, dataManager) {
+                    this.configManager = configManager;
+                    this.dataManager = dataManager;
+                    this.currentPath = null;
+                    this.expandedFolders = new Set();
+                    this.init();
+                }
+
+                init() {
+                    this.bindEvents();
+                    this.checkMobile();
+                    this.loadSettings();
+                    this.renderContent();
+                }
+
+                bindEvents() {
+                    // 设置相关
+                    document
+                        .getElementById("settingsBtn")
+                        .addEventListener("click", () => this.showSettings());
+                    document
+                        .getElementById("settingsCancel")
+                        .addEventListener("click", () =>
+                            this.hideModal("settingsModal"),
+                        );
+                    document
+                        .getElementById("settingsSave")
+                        .addEventListener("click", () => this.saveSettings());
+
+                    // 刷新
+                    document
+                        .getElementById("refreshBtn")
+                        .addEventListener("click", () => this.refreshData());
+
+                    // GitHub 链接
+                    document
+                        .getElementById("githubBtn")
+                        .addEventListener("click", () => {
+                            if (this.configManager.isValid()) {
+                                window.open(
+                                    this.configManager.getRepoUrl(),
+                                    "_blank",
+                                );
+                            } else {
+                                this.showSettings();
+                            }
+                        });
+
+                    // 移动端菜单
+                    document
+                        .getElementById("mobileMenuBtn")
+                        .addEventListener("click", () =>
+                            this.toggleMobileMenu(),
+                        );
+                    document
+                        .getElementById("mobileOverlay")
+                        .addEventListener("click", () =>
+                            this.toggleMobileMenu(),
+                        );
+
+                    // 键盘快捷键
+                    document.addEventListener("keydown", (e) => {
+                        if (e.key === "Escape") {
+                            this.hideModal("settingsModal");
+                        }
+                    });
+
+                    // 点击模态框外部关闭
+                    document
+                        .querySelectorAll(".modal-overlay")
+                        .forEach((overlay) => {
+                            overlay.addEventListener("click", (e) => {
+                                if (e.target === overlay) {
+                                    this.hideModal(overlay.id);
+                                }
+                            });
+                        });
+                }
+
+                checkMobile() {
+                    const isMobile = window.innerWidth <= 768;
+                    const mobileBtn = document.getElementById("mobileMenuBtn");
+                    if (isMobile) {
+                        mobileBtn.style.display = "flex";
+                    } else {
+                        mobileBtn.style.display = "none";
+                        document
+                            .getElementById("sidebar")
+                            .classList.remove("mobile-open");
+                        document
+                            .getElementById("mobileOverlay")
+                            .classList.remove("active");
+                    }
+                }
+
+                toggleMobileMenu() {
+                    const sidebar = document.getElementById("sidebar");
+                    const overlay = document.getElementById("mobileOverlay");
+                    sidebar.classList.toggle("mobile-open");
+                    overlay.classList.toggle("active");
+                }
+
+                loadSettings() {
+                    const config = this.configManager.config;
+                    document.getElementById("githubUsername").value =
+                        config.username || "";
+                    document.getElementById("githubRepo").value =
+                        config.repo || "";
+                    document.getElementById("githubPath").value =
+                        config.path || "";
+                }
+
+                showSettings() {
+                    this.loadSettings();
+                    this.showModal("settingsModal");
+                }
+
+                saveSettings() {
+                    const config = {
+                        username: document
+                            .getElementById("githubUsername")
+                            .value.trim(),
+                        repo: document
+                            .getElementById("githubRepo")
+                            .value.trim(),
+                        path: document
+                            .getElementById("githubPath")
+                            .value.trim(),
+                    };
+
+                    if (!config.username || !config.repo) {
+                        this.showToast("请填写用户名和仓库名", "error");
+                        return;
+                    }
+
+                    this.configManager.saveConfig(config);
+                    this.dataManager.clearCache();
+                    this.hideModal("settingsModal");
+                    this.showToast("配置已保存，正在加载...", "success");
+
+                    setTimeout(() => {
+                        this.refreshData();
+                    }, 500);
+                }
+
+                async refreshData() {
+                    if (!this.configManager.isValid()) {
+                        this.showSettings();
+                        return;
+                    }
+
+                    this.dataManager.clearCache();
+                    await this.renderContent();
+                }
+
+                async renderContent() {
+                    const navTree = document.getElementById("navTree");
+
+                    if (!this.configManager.isValid()) {
+                        navTree.innerHTML = `
+                        <div style="padding: 16px; color: var(--text-tertiary); font-size: 13px; text-align: center;">
+                            请先配置 GitHub 仓库
+                        </div>
+                    `;
+                        return;
+                    }
+
+                    try {
+                        const data = await this.dataManager.fetchContent();
+                        navTree.innerHTML = "";
+
+                        if (data.length === 0) {
+                            navTree.innerHTML = `
+                            <div style="padding: 16px; color: var(--text-tertiary); font-size: 13px; text-align: center;">
+                                仓库中没有找到 Markdown 文件
+                            </div>
+                        `;
+                            return;
+                        }
+
+                        data.forEach((item) => {
+                            const navItem = this.renderNavItem(item, 0);
+                            navTree.appendChild(navItem);
+                        });
+                    } catch (error) {
+                        this.showToast(error.message, "error");
+                        navTree.innerHTML = `
+                        <div style="padding: 16px; color: var(--text-tertiary); font-size: 13px; text-align: center;">
+                            加载失败: ${error.message}
+                        </div>
+                    `;
+                    }
+                }
+
+                renderNavItem(item, level) {
+                    const container = document.createElement("div");
+                    container.className = "nav-item";
+
+                    const content = document.createElement("div");
+                    content.className = "nav-item-content";
+                    content.style.paddingLeft = `${16 + level * 12}px`;
+
+                    if (item.type === "folder") {
+                        // 文件夹
+                        const toggle = document.createElement("div");
+                        toggle.className = "nav-toggle";
+                        toggle.textContent = "▶";
+                        content.appendChild(toggle);
+
+                        const icon = document.createElement("div");
+                        icon.className = "nav-icon";
+                        icon.textContent = "📁";
+                        content.appendChild(icon);
+
+                        const text = document.createElement("div");
+                        text.className = "nav-text";
+                        text.textContent = item.name;
+                        content.appendChild(text);
+
+                        // 子容器
+                        const childrenContainer = document.createElement("div");
+                        childrenContainer.className = "nav-children";
+
+                        // 点击展开/加载
+                        content.addEventListener("click", async (e) => {
+                            e.stopPropagation();
+
+                            const isExpanded = this.expandedFolders.has(
+                                item.path,
+                            );
+
+                            if (isExpanded) {
+                                // 收起
+                                this.expandedFolders.delete(item.path);
+                                toggle.classList.remove("expanded");
+                                childrenContainer.classList.remove("expanded");
+                            } else {
+                                // 展开
+                                if (childrenContainer.children.length === 0) {
+                                    // 首次加载
+                                    try {
+                                        const children =
+                                            await this.dataManager.fetchFolderChildren(
+                                                item.path,
+                                            );
+                                        children.forEach((child) => {
+                                            const childItem =
+                                                this.renderNavItem(
+                                                    child,
+                                                    level + 1,
+                                                );
+                                            childrenContainer.appendChild(
+                                                childItem,
+                                            );
+                                        });
+                                    } catch (error) {
+                                        this.showToast(
+                                            `加载文件夹失败: ${error.message}`,
+                                            "error",
+                                        );
+                                        return;
+                                    }
+                                }
+
+                                this.expandedFolders.add(item.path);
+                                toggle.classList.add("expanded");
+                                childrenContainer.classList.add("expanded");
+                            }
+                        });
+
+                        container.appendChild(content);
+                        container.appendChild(childrenContainer);
+                    } else if (item.type === "file") {
+                        // 文件
+                        const icon = document.createElement("div");
+                        icon.className = "nav-icon";
+                        icon.textContent = "📄";
+                        content.appendChild(icon);
+
+                        const text = document.createElement("div");
+                        text.className = "nav-text";
+                        text.textContent = item.name;
+                        content.appendChild(text);
+
+                        content.addEventListener("click", async (e) => {
+                            e.stopPropagation();
+                            await this.showFileContent(item);
+
+                            // 移动端点击后关闭菜单
+                            if (window.innerWidth <= 768) {
+                                this.toggleMobileMenu();
+                            }
+                        });
+
+                        container.appendChild(content);
+                    }
+
+                    return container;
+                }
+
+                async showFileContent(fileItem) {
+                    const contentArea = document.getElementById("contentArea");
+                    const toolbarTitle =
+                        document.getElementById("toolbarTitle");
+
+                    // 显示加载状态
+                    contentArea.innerHTML = `
+                    <div class="empty-state">
+                        <div class="loading"></div>
+                        <div class="empty-state-title">正在加载...</div>
+                    </div>
+                `;
+
+                    try {
+                        const content = await this.dataManager.fetchFileContent(
+                            fileItem.download_url,
+                        );
+                        const html = marked.parse(content);
+
+                        contentArea.innerHTML = `<div class="markdown-body">${html}</div>`;
+                        toolbarTitle.textContent = fileItem.name;
+                        this.currentPath = fileItem.path;
+                    } catch (error) {
+                        contentArea.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">❌</div>
+                            <div class="empty-state-title">加载失败</div>
+                            <div class="empty-state-desc">${error.message}</div>
+                        </div>
+                    `;
+                        this.showToast(error.message, "error");
+                    }
+                }
+
+                showModal(id) {
+                    document.getElementById(id).classList.add("active");
+                }
+
+                hideModal(id) {
+                    document.getElementById(id).classList.remove("active");
+                }
+
+                showToast(message, type = "info") {
+                    const toast = document.getElementById("toast");
+                    toast.textContent = message;
+                    toast.className = `toast ${type}`;
+                    toast.classList.add("show");
+
+                    setTimeout(() => {
+                        toast.classList.remove("show");
+                    }, 3000);
+                }
+            }
+
+            // 初始化应用
+            const configManager = new ConfigManager();
+            const dataManager = new DataManager(configManager);
+            const uiManager = new UIManager(configManager, dataManager);
+
+            // 窗口大小改变时检查移动端
+            window.addEventListener("resize", () => {
+                uiManager.checkMobile();
+            });
+
+            // 页面加载完成后的欢迎提示
+            window.addEventListener("load", () => {
+                if (!configManager.isValid()) {
+                    setTimeout(() => {
+                        uiManager.showToast(
+                            "请点击 ⚙ 配置 GitHub 仓库",
+                            "info",
+                        );
+                    }, 1000);
+                }
+            });
+        </script>
+    </body>
+</html>
