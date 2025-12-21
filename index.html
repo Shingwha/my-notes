@@ -502,11 +502,13 @@
                 background: var(--accent-color);
                 color: #000;
                 border-color: var(--accent-color);
-                font-weight: 500;
+                font-weight: 600;
+                box-shadow: 0 0 15px rgba(34, 211, 238, 0.2);
             }
             .btn.primary:hover {
                 opacity: 0.9;
-                border-color: var(--accent-color);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4);
             }
 
             .modal-actions {
@@ -514,6 +516,94 @@
                 justify-content: flex-end;
                 gap: 12px;
                 margin-top: 24px;
+            }
+
+            /* Modal Styles */
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(4px);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+            }
+            .modal-overlay.active {
+                display: flex;
+            }
+            .modal {
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                width: 100%;
+                max-width: 400px;
+                padding: 24px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            }
+            .modal-title {
+                font-size: 18px;
+                font-weight: 600;
+                margin-bottom: 20px;
+                color: var(--text-primary);
+            }
+            .form-group {
+                margin-bottom: 16px;
+            }
+            .form-label {
+                display: block;
+                font-size: 12px;
+                color: var(--text-secondary);
+                margin-bottom: 6px;
+                font-weight: 500;
+            }
+            .form-input {
+                width: 100%;
+                background: var(--bg-tertiary);
+                border: 1px solid var(--border-color);
+                color: var(--text-primary);
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-size: 13px;
+                outline: none;
+                transition: border-color 0.2s;
+            }
+            .form-input:focus {
+                border-color: var(--accent-color);
+            }
+
+            /* Toast Styles */
+            .toast {
+                position: fixed;
+                bottom: 24px;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                background: var(--accent-color);
+                color: #000;
+                padding: 8px 16px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 500;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 2000;
+                pointer-events: none;
+            }
+            .toast.show {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            .mobile-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 90;
+                display: none;
             }
 
             .mobile-menu-btn {
