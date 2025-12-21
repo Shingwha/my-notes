@@ -335,6 +335,13 @@
                 opacity: 1;
             }
 
+            /* 菜单按钮样式 - 在所有屏幕尺寸下都显示 */
+            .mobile-menu-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
             /* 移动端适配样式 */
             .mobile-overlay {
                 display: none;
@@ -352,6 +359,24 @@
             .mobile-overlay.active {
                 display: block;
                 opacity: 1;
+            }
+
+            /* 桌面端侧边栏收起状态 */
+            .sidebar {
+                transition: transform 0.3s ease-in-out;
+            }
+
+            .sidebar.collapsed {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.collapsed ~ .main-content {
+                margin-left: 0;
+                transition: margin-left 0.3s ease-in-out;
+            }
+
+            .main-content {
+                transition: margin-left 0.3s ease-in-out;
             }
 
             /* 平板和手机适配 (≤ 1024px) */
@@ -889,8 +914,22 @@
 
                     if (mobileMenuBtn) {
                         mobileMenuBtn.onclick = () => {
-                            sidebar.classList.toggle("open");
-                            mobileOverlay.classList.toggle("active");
+                            // 根据屏幕尺寸执行不同的逻辑
+                            if (window.innerWidth > 1024) {
+                                // 桌面端：收起/展开侧边栏
+                                sidebar.classList.toggle("collapsed");
+                                // 保存状态到 localStorage
+                                const isCollapsed =
+                                    sidebar.classList.contains("collapsed");
+                                localStorage.setItem(
+                                    "sidebar_collapsed",
+                                    isCollapsed,
+                                );
+                            } else {
+                                // 移动端：显示模态框式的侧边栏
+                                sidebar.classList.toggle("open");
+                                mobileOverlay.classList.toggle("active");
+                            }
                         };
                     }
 
@@ -928,11 +967,37 @@
                     // 窗口大小改变时重置菜单状态
                     window.addEventListener("resize", () => {
                         if (window.innerWidth > 1024) {
+                            // 切换到桌面端
                             sidebar.classList.remove("open");
                             mobileOverlay.classList.remove("active");
                             document.body.style.overflow = "";
+                            // 恢复桌面端的侧边栏状态
+                            const isCollapsed =
+                                localStorage.getItem("sidebar_collapsed") ===
+                                "true";
+                            if (isCollapsed) {
+                                sidebar.classList.add("collapsed");
+                            } else {
+                                sidebar.classList.remove("collapsed");
+                            }
+                        } else {
+                            // 切换到移动端
+                            sidebar.classList.remove("collapsed");
                         }
                     });
+
+                    // 页面加载时初始化侧边栏状态
+                    const initSidebarState = () => {
+                        if (window.innerWidth > 1024) {
+                            const isCollapsed =
+                                localStorage.getItem("sidebar_collapsed") ===
+                                "true";
+                            if (isCollapsed) {
+                                sidebar.classList.add("collapsed");
+                            }
+                        }
+                    };
+                    initSidebarState();
 
                     // 防止移动端菜单打开时页面滚动
                     const toggleBodyScroll = (disable) => {
