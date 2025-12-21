@@ -1,260 +1,633 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ShingWha的笔记</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
-    <style>
-        /* 这里保留你原来的 CSS 样式不变 */
-        /* ... (保持你提供的 CSS) ... */
-        :root {
-            --bg-primary: #0a0a0a; --bg-secondary: #141414; --bg-tertiary: #1a1a1a;
-            --border-color: #27272a; --text-primary: #fafafa; --text-secondary: #a1a1aa;
-            --text-tertiary: #71717a; --accent-color: #3b82f6; --hover-bg: #1f1f22;
-            --active-bg: #27272a; --active-border: #3b82f6;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-primary); color: var(--text-primary); overflow: hidden; height: 100vh; }
-        .container { display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 280px; background: var(--bg-secondary); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; }
-        .sidebar-header { padding: 20px 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
-        .logo { font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-primary); }
-        .header-actions { display: flex; gap: 8px; }
-        .icon-btn { width: 28px; height: 28px; border: 1px solid var(--border-color); background: transparent; color: var(--text-secondary); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-        .icon-btn:hover { background: var(--hover-bg); color: var(--text-primary); }
-        .nav-tree { flex: 1; overflow-y: auto; padding: 8px 0; }
-        .nav-item-content { display: flex; align-items: center; padding: 6px 16px; cursor: pointer; border-left: 2px solid transparent; transition: background 0.15s; }
-        .nav-item-content:hover { background: var(--hover-bg); }
-        .nav-item-content.active { background: var(--active-bg); border-left-color: var(--active-border); }
-        .nav-text { flex: 1; font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .nav-toggle { width: 16px; font-size: 10px; color: var(--text-tertiary); transition: transform 0.2s; }
-        .nav-toggle.expanded { transform: rotate(90deg); }
-        .nav-children { margin-left: 12px; border-left: 1px solid var(--border-color); overflow: hidden; display: none; }
-        .nav-children.show { display: block; }
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .toolbar { height: 56px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: var(--bg-secondary); }
-        .content-area { flex: 1; overflow-y: auto; padding: 32px 48px; max-width: 900px; margin: 0 auto; width: 100%; }
-        .markdown-body { line-height: 1.7; color: var(--text-primary); }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-overlay.active { display: flex; }
-        .modal { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; width: 90%; max-width: 500px; padding: 24px; }
-        .form-group { margin-bottom: 16px; }
-        .form-input { width: 100%; padding: 8px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: #fff; border-radius: 4px; }
-        .btn { padding: 6px 12px; border: 1px solid var(--border-color); background: transparent; color: var(--text-secondary); cursor: pointer; border-radius: 4px; }
-        .btn.primary { background: var(--accent-color); color: white; border: none; }
-        .toast { position: fixed; bottom: 20px; right: 20px; padding: 10px 20px; background: #333; color: #fff; border-radius: 4px; opacity: 0; transition: 0.3s; pointer-events: none; }
-        .toast.show { opacity: 1; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">NOTES</div>
-                <div class="header-actions">
-                    <button class="icon-btn" id="refreshBtn" title="刷新">↻</button>
-                    <button class="icon-btn" id="settingsBtn" title="配置">⚙</button>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ShingWha的笔记</title>
+        <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+        <style>
+            /* 这里保留你原来的 CSS 样式不变 */
+            /* ... (保持你提供的 CSS) ... */
+            :root {
+                --bg-primary: #0a0a0a;
+                --bg-secondary: #141414;
+                --bg-tertiary: #1a1a1a;
+                --border-color: #27272a;
+                --text-primary: #fafafa;
+                --text-secondary: #a1a1aa;
+                --text-tertiary: #71717a;
+                --accent-color: #3b82f6;
+                --hover-bg: #1f1f22;
+                --active-bg: #27272a;
+                --active-border: #3b82f6;
+            }
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    sans-serif;
+                background: var(--bg-primary);
+                color: var(--text-primary);
+                overflow: hidden;
+                height: 100vh;
+            }
+            .container {
+                display: flex;
+                height: 100vh;
+                overflow: hidden;
+            }
+            .sidebar {
+                width: 280px;
+                background: var(--bg-secondary);
+                border-right: 1px solid var(--border-color);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .sidebar-header {
+                padding: 20px 16px;
+                border-bottom: 1px solid var(--border-color);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .logo {
+                font-size: 14px;
+                font-weight: 700;
+                text-transform: uppercase;
+                color: var(--text-primary);
+            }
+            .header-actions {
+                display: flex;
+                gap: 8px;
+            }
+            .icon-btn {
+                width: 28px;
+                height: 28px;
+                border: 1px solid var(--border-color);
+                background: transparent;
+                color: var(--text-secondary);
+                border-radius: 4px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+            }
+            .icon-btn:hover {
+                background: var(--hover-bg);
+                color: var(--text-primary);
+            }
+            .nav-tree {
+                flex: 1;
+                overflow-y: auto;
+                padding: 8px 0;
+            }
+            .nav-item-content {
+                display: flex;
+                align-items: center;
+                padding: 6px 16px;
+                cursor: pointer;
+                border-left: 2px solid transparent;
+                transition: background 0.15s;
+            }
+            .nav-item-content:hover {
+                background: var(--hover-bg);
+            }
+            .nav-item-content.active {
+                background: var(--active-bg);
+                border-left-color: var(--active-border);
+            }
+            .nav-text {
+                flex: 1;
+                font-size: 13px;
+                color: var(--text-secondary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .nav-toggle {
+                width: 16px;
+                font-size: 10px;
+                color: var(--text-tertiary);
+                transition: transform 0.2s;
+            }
+            .nav-toggle.expanded {
+                transform: rotate(90deg);
+            }
+            .nav-children {
+                margin-left: 12px;
+                border-left: 1px solid var(--border-color);
+                overflow: hidden;
+                max-height: 0;
+                transition: max-height 0.2s ease-out;
+            }
+            .nav-children.show {
+                max-height: 5000px;
+            }
+            .nav-loading {
+                color: var(--text-tertiary);
+                font-size: 12px;
+                padding: 4px 16px;
+                font-style: italic;
+            }
+            .nav-item-content.loading {
+                opacity: 0.6;
+                cursor: wait;
+            }
+            .main-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .toolbar {
+                height: 56px;
+                border-bottom: 1px solid var(--border-color);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 24px;
+                background: var(--bg-secondary);
+            }
+            .content-area {
+                flex: 1;
+                overflow-y: auto;
+                padding: 32px 48px;
+                max-width: 900px;
+                margin: 0 auto;
+                width: 100%;
+            }
+            .markdown-body {
+                line-height: 1.8;
+                color: var(--text-primary);
+                font-size: 15px;
+                word-wrap: break-word;
+            }
+            .markdown-body h1,
+            .markdown-body h2,
+            .markdown-body h3,
+            .markdown-body h4 {
+                margin-top: 24px;
+                margin-bottom: 12px;
+                line-height: 1.3;
+                font-weight: 600;
+            }
+            .markdown-body h1 {
+                font-size: 28px;
+                border-bottom: 1px solid var(--border-color);
+                padding-bottom: 8px;
+            }
+            .markdown-body h2 {
+                font-size: 22px;
+                border-bottom: 1px solid var(--border-color);
+                padding-bottom: 6px;
+            }
+            .markdown-body h3 {
+                font-size: 18px;
+            }
+            .markdown-body p {
+                margin-bottom: 16px;
+            }
+            .markdown-body ul,
+            .markdown-body ol {
+                margin-bottom: 16px;
+                padding-left: 24px;
+            }
+            .markdown-body li {
+                margin-bottom: 6px;
+            }
+            .markdown-body code {
+                background: var(--bg-tertiary);
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-family: "Consolas", "Monaco", monospace;
+                font-size: 14px;
+            }
+            .markdown-body pre {
+                background: var(--bg-tertiary);
+                padding: 16px;
+                border-radius: 6px;
+                overflow-x: auto;
+                margin-bottom: 16px;
+                border: 1px solid var(--border-color);
+            }
+            .markdown-body pre code {
+                background: none;
+                padding: 0;
+            }
+            .markdown-body blockquote {
+                border-left: 3px solid var(--accent-color);
+                padding-left: 16px;
+                margin: 16px 0;
+                color: var(--text-secondary);
+                background: rgba(59, 130, 246, 0.05);
+                padding: 12px 16px;
+                border-radius: 4px;
+            }
+            .markdown-body a {
+                color: var(--accent-color);
+                text-decoration: none;
+            }
+            .markdown-body a:hover {
+                text-decoration: underline;
+            }
+            .markdown-body table {
+                border-collapse: collapse;
+                width: 100%;
+                margin-bottom: 16px;
+            }
+            .markdown-body th,
+            .markdown-body td {
+                border: 1px solid var(--border-color);
+                padding: 8px 12px;
+                text-align: left;
+            }
+            .markdown-body th {
+                background: var(--bg-tertiary);
+                font-weight: 600;
+            }
+            .markdown-body img {
+                max-width: 100%;
+                height: auto;
+                border-radius: 6px;
+            }
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+            }
+            .modal-overlay.active {
+                display: flex;
+            }
+            .modal {
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                width: 90%;
+                max-width: 500px;
+                padding: 24px;
+            }
+            .form-group {
+                margin-bottom: 16px;
+            }
+            .form-input {
+                width: 100%;
+                padding: 8px 12px;
+                background: var(--bg-tertiary);
+                border: 1px solid var(--border-color);
+                color: #fff;
+                border-radius: 4px;
+            }
+            .btn {
+                padding: 6px 12px;
+                border: 1px solid var(--border-color);
+                background: transparent;
+                color: var(--text-secondary);
+                cursor: pointer;
+                border-radius: 4px;
+            }
+            .btn.primary {
+                background: var(--accent-color);
+                color: white;
+                border: none;
+            }
+            .toast {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                padding: 10px 20px;
+                background: #333;
+                color: #fff;
+                border-radius: 4px;
+                opacity: 0;
+                transition: 0.3s;
+                pointer-events: none;
+            }
+            .toast.show {
+                opacity: 1;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="logo">NOTES</div>
+                    <div class="header-actions">
+                        <button class="icon-btn" id="refreshBtn" title="刷新">
+                            ↻
+                        </button>
+                        <button class="icon-btn" id="settingsBtn" title="配置">
+                            ⚙
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="nav-tree" id="navTree"></div>
-        </aside>
-        <div class="mobile-overlay" id="mobileOverlay"></div>
-        <main class="main-content">
-            <div class="toolbar">
-                <div class="toolbar-left">
-                    <button class="icon-btn" id="mobileMenuBtn" style="display: none">☰</button>
-                    <div class="toolbar-title" id="toolbarTitle">欢迎使用</div>
+                <div class="nav-tree" id="navTree"></div>
+            </aside>
+            <div class="mobile-overlay" id="mobileOverlay"></div>
+            <main class="main-content">
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <button
+                            class="icon-btn"
+                            id="mobileMenuBtn"
+                            style="display: none"
+                        >
+                            ☰
+                        </button>
+                        <div class="toolbar-title" id="toolbarTitle">
+                            欢迎使用
+                        </div>
+                    </div>
+                    <div class="toolbar-actions">
+                        <button class="btn" id="githubBtn">
+                            <span>🔗</span> GitHub
+                        </button>
+                    </div>
                 </div>
-                <div class="toolbar-actions">
-                    <button class="btn" id="githubBtn"><span>🔗</span> GitHub</button>
-                </div>
-            </div>
-            <div class="content-area" id="contentArea">
-                </div>
-        </main>
-    </div>
+                <div class="content-area" id="contentArea"></div>
+            </main>
+        </div>
 
-    <div class="modal-overlay" id="settingsModal">
-        <div class="modal">
-            <div class="modal-title">GitHub 仓库配置</div>
-            <div class="form-group">
-                <label class="form-label">GitHub 用户名</label>
-                <input type="text" class="form-input" id="githubUsername" />
-            </div>
-            <div class="form-group">
-                <label class="form-label">仓库名称</label>
-                <input type="text" class="form-input" id="githubRepo" />
-            </div>
-            <div class="form-group">
-                <label class="form-label">文档路径 (可选)</label>
-                <input type="text" class="form-input" id="githubPath" placeholder="例如: docs" />
-            </div>
-            <div class="modal-actions">
-                <button class="btn" id="settingsCancel">取消</button>
-                <button class="btn primary" id="settingsSave">保存配置</button>
+        <div class="modal-overlay" id="settingsModal">
+            <div class="modal">
+                <div class="modal-title">GitHub 仓库配置</div>
+                <div class="form-group">
+                    <label class="form-label">GitHub 用户名</label>
+                    <input type="text" class="form-input" id="githubUsername" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">仓库名称</label>
+                    <input type="text" class="form-input" id="githubRepo" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">文档路径 (可选)</label>
+                    <input
+                        type="text"
+                        class="form-input"
+                        id="githubPath"
+                        placeholder="例如: docs"
+                    />
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" id="settingsCancel">取消</button>
+                    <button class="btn primary" id="settingsSave">
+                        保存配置
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="toast" id="toast"></div>
+        <div class="toast" id="toast"></div>
 
-    <script>
-        // --- Config Manager ---
-        class ConfigManager {
-            constructor() { this.config = this.loadConfig(); }
-            loadConfig() {
-                const stored = localStorage.getItem("blog_config");
-                return stored ? JSON.parse(stored) : { username: "", repo: "", path: "" };
-            }
-            saveConfig(config) {
-                this.config = { ...config };
-                localStorage.setItem("blog_config", JSON.stringify(this.config));
-            }
-            isValid() { return this.config.username && this.config.repo; }
-            getApiUrl(subPath = "") {
-                const { username, repo, path } = this.config;
-                let fullPath = path;
-                if (subPath) fullPath = subPath; 
-                return `https://api.github.com/repos/${username}/${repo}/contents/${fullPath || ''}`;
-            }
-            getRepoUrl() { return `https://github.com/${this.config.username}/${this.config.repo}`; }
-        }
-
-        // --- Data Manager ---
-        class DataManager {
-            constructor(configManager) {
-                this.configManager = configManager;
-                this.cache = new Map();
-            }
-            async fetchPath(path = "") {
-                const url = this.configManager.getApiUrl(path);
-                if (this.cache.has(url)) return this.cache.get(url);
-                const res = await fetch(url);
-                if (!res.ok) throw new Error("获取失败");
-                const data = await res.json();
-                const processed = this.processData(data);
-                this.cache.set(url, processed);
-                return processed;
-            }
-            processData(data) {
-                if (!Array.isArray(data)) data = [data];
-                return data.map(item => ({
-                    type: item.type === "dir" ? "folder" : "file",
-                    name: item.name.replace(/\.md$/, ""),
-                    path: item.path,
-                    download_url: item.download_url
-                })).filter(i => i.type === "folder" || i.path.endsWith(".md"));
-            }
-            async getRaw(url) {
-                const res = await fetch(url);
-                return await res.text();
-            }
-        }
-
-        // --- UI Manager ---
-        class UIManager {
-            constructor(config, data) {
-                this.configManager = config;
-                this.dataManager = data;
-                this.init();
-            }
-            init() {
-                this.bindEvents();
-                if (this.configManager.isValid()) this.refreshData();
-                else this.showSettings();
-            }
-            bindEvents() {
-                document.getElementById("settingsBtn").onclick = () => this.showSettings();
-                document.getElementById("settingsSave").onclick = () => this.saveSettings();
-                document.getElementById("settingsCancel").onclick = () => this.hideModal("settingsModal");
-                document.getElementById("refreshBtn").onclick = () => this.refreshData();
-            }
-            showToast(msg) {
-                const t = document.getElementById("toast");
-                t.innerText = msg; t.classList.add("show");
-                setTimeout(() => t.classList.remove("show"), 2000);
-            }
-            showSettings() {
-                const { username, repo, path } = this.configManager.config;
-                document.getElementById("githubUsername").value = username;
-                document.getElementById("githubRepo").value = repo;
-                document.getElementById("githubPath").value = path;
-                document.getElementById("settingsModal").classList.add("active");
-            }
-            hideModal(id) { document.getElementById(id).classList.remove("active"); }
-            saveSettings() {
-                this.configManager.saveConfig({
-                    username: document.getElementById("githubUsername").value.trim(),
-                    repo: document.getElementById("githubRepo").value.trim(),
-                    path: document.getElementById("githubPath").value.trim()
-                });
-                this.hideModal("settingsModal");
-                this.refreshData();
-            }
-            async refreshData() {
-                if (!this.configManager.isValid()) return;
-                const tree = document.getElementById("navTree");
-                tree.innerHTML = "<div style='padding:16px'>加载中...</div>";
-                try {
-                    const data = await this.dataManager.fetchPath();
-                    this.renderTree(tree, data);
-                    this.showToast("同步成功");
-                } catch (e) {
-                    this.showToast("同步失败: " + e.message);
+        <script>
+            // --- Config Manager ---
+            class ConfigManager {
+                constructor() {
+                    this.config = this.loadConfig();
+                }
+                loadConfig() {
+                    const stored = localStorage.getItem("blog_config");
+                    return stored
+                        ? JSON.parse(stored)
+                        : { username: "", repo: "", path: "" };
+                }
+                saveConfig(config) {
+                    this.config = { ...config };
+                    localStorage.setItem(
+                        "blog_config",
+                        JSON.stringify(this.config),
+                    );
+                }
+                isValid() {
+                    return this.config.username && this.config.repo;
+                }
+                getApiUrl(subPath = "") {
+                    const { username, repo, path } = this.config;
+                    let fullPath = path;
+                    if (subPath) fullPath = subPath;
+                    return `https://api.github.com/repos/${username}/${repo}/contents/${fullPath || ""}`;
+                }
+                getRepoUrl() {
+                    return `https://github.com/${this.config.username}/${this.config.repo}`;
                 }
             }
-            renderTree(container, items) {
-                container.innerHTML = "";
-                items.forEach(item => {
-                    const div = document.createElement("div");
-                    div.className = "nav-item";
-                    div.innerHTML = `
+
+            // --- Data Manager ---
+            class DataManager {
+                constructor(configManager) {
+                    this.configManager = configManager;
+                    this.cache = new Map();
+                }
+                async fetchPath(path = "") {
+                    const url = this.configManager.getApiUrl(path);
+                    if (this.cache.has(url)) return this.cache.get(url);
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error("获取失败");
+                    const data = await res.json();
+                    const processed = this.processData(data);
+                    this.cache.set(url, processed);
+                    return processed;
+                }
+                processData(data) {
+                    if (!Array.isArray(data)) data = [data];
+                    return data
+                        .map((item) => ({
+                            type: item.type === "dir" ? "folder" : "file",
+                            name: item.name.replace(/\.md$/, ""),
+                            path: item.path,
+                            download_url: item.download_url,
+                        }))
+                        .filter(
+                            (i) =>
+                                i.type === "folder" || i.path.endsWith(".md"),
+                        );
+                }
+                async getRaw(url) {
+                    const res = await fetch(url);
+                    return await res.text();
+                }
+            }
+
+            // --- UI Manager ---
+            class UIManager {
+                constructor(config, data) {
+                    this.configManager = config;
+                    this.dataManager = data;
+                    this.init();
+                }
+                init() {
+                    this.bindEvents();
+                    if (this.configManager.isValid()) this.refreshData();
+                    else this.showSettings();
+                }
+                bindEvents() {
+                    document.getElementById("settingsBtn").onclick = () =>
+                        this.showSettings();
+                    document.getElementById("settingsSave").onclick = () =>
+                        this.saveSettings();
+                    document.getElementById("settingsCancel").onclick = () =>
+                        this.hideModal("settingsModal");
+                    document.getElementById("refreshBtn").onclick = () =>
+                        this.refreshData();
+                }
+                showToast(msg) {
+                    const t = document.getElementById("toast");
+                    t.innerText = msg;
+                    t.classList.add("show");
+                    setTimeout(() => t.classList.remove("show"), 2000);
+                }
+                showSettings() {
+                    const { username, repo, path } = this.configManager.config;
+                    document.getElementById("githubUsername").value = username;
+                    document.getElementById("githubRepo").value = repo;
+                    document.getElementById("githubPath").value = path;
+                    document
+                        .getElementById("settingsModal")
+                        .classList.add("active");
+                }
+                hideModal(id) {
+                    document.getElementById(id).classList.remove("active");
+                }
+                saveSettings() {
+                    this.configManager.saveConfig({
+                        username: document
+                            .getElementById("githubUsername")
+                            .value.trim(),
+                        repo: document
+                            .getElementById("githubRepo")
+                            .value.trim(),
+                        path: document
+                            .getElementById("githubPath")
+                            .value.trim(),
+                    });
+                    this.hideModal("settingsModal");
+                    this.refreshData();
+                }
+                async refreshData() {
+                    if (!this.configManager.isValid()) return;
+                    const tree = document.getElementById("navTree");
+                    tree.innerHTML =
+                        "<div style='padding:16px'>加载中...</div>";
+                    try {
+                        const data = await this.dataManager.fetchPath();
+                        this.renderTree(tree, data);
+                        this.showToast("同步成功");
+                    } catch (e) {
+                        this.showToast("同步失败: " + e.message);
+                    }
+                }
+                renderTree(container, items) {
+                    container.innerHTML = "";
+                    items.forEach((item) => {
+                        const div = document.createElement("div");
+                        div.className = "nav-item";
+                        div.innerHTML = `
                         <div class="nav-item-content">
-                            <span class="nav-toggle">${item.type === 'folder' ? '▶' : ''}</span>
+                            <span class="nav-toggle">${item.type === "folder" ? "▶" : ""}</span>
                             <span class="nav-text">${item.name}</span>
                         </div>
                         <div class="nav-children"></div>
                     `;
-                    const content = div.querySelector(".nav-item-content");
-                    content.onclick = async () => {
-                        if (item.type === "folder") {
-                            const childDom = div.querySelector(".nav-children");
-                            const toggle = div.querySelector(".nav-toggle");
-                            if (childDom.style.display === "block") {
-                                childDom.style.display = "none";
-                                toggle.classList.remove("expanded");
-                            } else {
-                                if (!childDom.innerHTML) {
-                                    const children = await this.dataManager.fetchPath(item.path);
-                                    this.renderTree(childDom, children);
+                        const content = div.querySelector(".nav-item-content");
+                        content.onclick = async () => {
+                            if (item.type === "folder") {
+                                const childDom =
+                                    div.querySelector(".nav-children");
+                                const toggle = div.querySelector(".nav-toggle");
+                                const isExpanded =
+                                    childDom.classList.contains("show");
+
+                                if (isExpanded) {
+                                    // 收起
+                                    requestAnimationFrame(() => {
+                                        childDom.classList.remove("show");
+                                        toggle.classList.remove("expanded");
+                                    });
+                                } else {
+                                    // 展开
+                                    if (!childDom.innerHTML) {
+                                        // 显示加载状态
+                                        content.classList.add("loading");
+                                        const loadingDiv =
+                                            document.createElement("div");
+                                        loadingDiv.className = "nav-loading";
+                                        loadingDiv.textContent = "加载中...";
+                                        childDom.appendChild(loadingDiv);
+                                        childDom.classList.add("show");
+
+                                        // 异步加载数据
+                                        setTimeout(async () => {
+                                            try {
+                                                const children =
+                                                    await this.dataManager.fetchPath(
+                                                        item.path,
+                                                    );
+                                                childDom.innerHTML = "";
+                                                requestAnimationFrame(() => {
+                                                    this.renderTree(
+                                                        childDom,
+                                                        children,
+                                                    );
+                                                    content.classList.remove(
+                                                        "loading",
+                                                    );
+                                                });
+                                            } catch (e) {
+                                                childDom.innerHTML = `<div class="nav-loading" style="color: #ef4444;">加载失败</div>`;
+                                                content.classList.remove(
+                                                    "loading",
+                                                );
+                                            }
+                                        }, 10);
+                                    } else {
+                                        requestAnimationFrame(() => {
+                                            childDom.classList.add("show");
+                                            toggle.classList.add("expanded");
+                                        });
+                                    }
                                 }
-                                childDom.style.display = "block";
-                                toggle.classList.add("expanded");
+                            } else {
+                                this.loadFile(item);
                             }
-                        } else {
-                            this.loadFile(item);
-                        }
-                    };
-                    container.appendChild(div);
-                });
-            }
-            async loadFile(item) {
-                document.getElementById("toolbarTitle").innerText = item.name;
-                const area = document.getElementById("contentArea");
-                area.innerHTML = "读取内容中...";
-                try {
-                    const md = await this.dataManager.getRaw(item.download_url);
-                    area.innerHTML = `<div class="markdown-body">${marked.parse(md)}</div>`;
-                } catch (e) {
-                    area.innerHTML = "读取失败";
+                        };
+                        container.appendChild(div);
+                    });
+                }
+                async loadFile(item) {
+                    document.getElementById("toolbarTitle").innerText =
+                        item.name;
+                    const area = document.getElementById("contentArea");
+                    area.innerHTML = "读取内容中...";
+                    try {
+                        const md = await this.dataManager.getRaw(
+                            item.download_url,
+                        );
+                        // 使用 requestAnimationFrame 优化渲染
+                        requestAnimationFrame(() => {
+                            area.innerHTML = `<div class="markdown-body">${marked.parse(md)}</div>`;
+                        });
+                    } catch (e) {
+                        area.innerHTML = "读取失败";
+                    }
                 }
             }
-        }
 
-        // --- Start App ---
-        const config = new ConfigManager();
-        const data = new DataManager(config);
-        const ui = new UIManager(config, data);
-    </script>
-</body>
+            // --- Start App ---
+            const config = new ConfigManager();
+            const data = new DataManager(config);
+            const ui = new UIManager(config, data);
+        </script>
+    </body>
 </html>
