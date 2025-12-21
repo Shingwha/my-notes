@@ -851,12 +851,10 @@
             class ConfigManager {
                 constructor() {
                     this.config = this.loadConfig();
-                    // 仅当本地没有配置时，才尝试从 URL 初始化，但不自动保存
-                    if (!this.isValid()) {
-                        const urlCfg = this.autoDetectFromUrl();
-                        if (urlCfg) {
-                            this.config = { ...this.config, ...urlCfg };
-                        }
+                    // 优先级：URL 参数 > Hash 路由 > 域名检测 > 本地存储
+                    const urlCfg = this.autoDetectFromUrl();
+                    if (urlCfg) {
+                        this.config = { ...this.config, ...urlCfg };
                     }
                 }
 
@@ -886,31 +884,28 @@
                         path = "",
                         token = "";
 
-                    // 1. URL 参数优先
-                    if (
-                        params.has("user") ||
-                        params.has("username") ||
-                        params.has("repo")
-                    ) {
-                        username =
-                            params.get("user") || params.get("username") || "";
+                    // 1. URL 参数优先 (?user=xxx&repo=xxx)
+                    if (params.has("user") || params.has("username")) {
+                        username = params.get("user") || params.get("username");
                         repo = params.get("repo") || "";
                         path = params.get("path") || "";
                         token = params.get("token") || "";
                     }
 
-                    // 2. Hash 路由
-                    const hash = window.location.hash.slice(1);
-                    if (!username && hash && hash.startsWith("/")) {
-                        const parts = hash.split("/").filter((p) => p);
-                        if (parts.length >= 2) {
-                            username = parts[0];
-                            repo = parts[1];
-                            path = parts.slice(2).join("/");
+                    // 2. Hash 路由 (#/user/repo/...)
+                    if (!username) {
+                        const hash = window.location.hash.slice(1);
+                        if (hash && hash.startsWith("/")) {
+                            const parts = hash.split("/").filter((p) => p);
+                            if (parts.length >= 2) {
+                                username = parts[0];
+                                repo = parts[1];
+                                // 注意：此处不设置 path，因为 hash 后面的部分是具体文件路径
+                            }
                         }
                     }
 
-                    // 3. GitHub Pages 域名
+                    // 3. GitHub Pages 域名 (username.github.io/repo)
                     if (!username) {
                         const hostname = url.hostname;
                         const pathname = url.pathname.replace(/\/$/, "");
@@ -919,7 +914,6 @@
                             const parts = pathname.split("/").filter((p) => p);
                             if (parts.length >= 1) {
                                 repo = parts[0];
-                                path = parts.slice(1).join("/");
                             }
                         }
                     }
@@ -1308,8 +1302,16 @@
                         token,
                     });
                     this.hideModal();
-                    this.dataManager.treeData = null;
-                    this.refreshData();
+
+                    // 更新 URL Hash 以匹配新仓库
+                    const newHash = `#/${username}/${repo}`;
+                    if (window.location.hash !== newHash) {
+                        window.location.hash = newHash;
+                    } else {
+                        // 如果 Hash 没变，手动触发刷新
+                        this.dataManager.treeData = null;
+                        this.refreshData();
+                    }
                 }
 
                 async refreshData() {
@@ -1354,9 +1356,33 @@
                     }
 
                     const parts = hash.split("/").filter((p) => p);
-                    // 我们期望的格式是 /user/repo/path/to/file.md
-                    // 前两个部分是 user 和 repo，剩下的就是文件路径
-                    if (parts.length <= 2) return;
+                    if (parts.length < 2) return;
+
+                    const hashUser = parts[0];
+                    const hashRepo = parts[1];
+                    const currentCfg = this.configManager.config;
+
+                    // 核心改进：检测是否切换了仓库
+                    if (
+                        hashUser !== currentCfg.username ||
+                        hashRepo !== currentCfg.repo
+                    ) {
+                        console.log(
+                            `切换仓库: ${currentCfg.username}/${currentCfg.repo} -> ${hashUser}/${hashRepo}`,
+                        );
+                        // 更新当前配置
+                        this.configManager.config.username = hashUser;
+                        this.configManager.config.repo = hashRepo;
+                        this.configManager.config.path = ""; // 切换仓库时默认清空子路径
+                        this.dataManager.treeData = null;
+                        this.refreshData();
+                        return;
+                    }
+
+                    if (parts.length <= 2) {
+                        this.showHome(true);
+                        return;
+                    }
 
                     const filePath = parts.slice(2).join("/");
 
@@ -1364,7 +1390,7 @@
                     const findFile = (nodes) => {
                         for (const node of nodes) {
                             if (node.path === filePath) return node;
-                            if (node.children.length) {
+                            if (node.children && node.children.length) {
                                 const found = findFile(node.children);
                                 if (found) return found;
                             }
@@ -1372,11 +1398,13 @@
                         return null;
                     };
 
-                    const targetNode = findFile(
-                        this.dataManager.treeData || [],
-                    );
+                    const tree = this.dataManager.treeData || [];
+                    const targetNode = findFile(tree);
                     if (targetNode) {
-                        this.setActiveFile(targetNode, true); // true 表示静默加载，不重复更新 Hash
+                        this.setActiveFile(targetNode, true);
+                    } else {
+                        // 如果在当前树中找不到，可能是还没加载完或者路径不对
+                        console.warn("未在目录树中找到文件:", filePath);
                     }
                 }
 
