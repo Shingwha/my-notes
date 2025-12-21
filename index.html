@@ -3,23 +3,32 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>ShingWha的笔记</title>
+        <title>My Notes - GitHub 笔记浏览</title>
+        <!-- 外部依赖 -->
         <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
         <style>
-            /* 这里保留你原来的 CSS 样式不变 */
-            /* ... (保持你提供的 CSS) ... */
             :root {
                 --bg-primary: #0a0a0a;
-                --bg-secondary: #141414;
-                --bg-tertiary: #1a1a1a;
+                --bg-secondary: #0f0f10;
+                --bg-tertiary: #161618;
                 --border-color: #27272a;
                 --text-primary: #fafafa;
                 --text-secondary: #a1a1aa;
-                --text-tertiary: #71717a;
-                --accent-color: #3b82f6;
-                --hover-bg: #1f1f22;
+                --text-tertiary: #52525b;
+                --accent-color: #22d3ee;
+                --hover-bg: #1e1e20;
                 --active-bg: #27272a;
-                --active-border: #3b82f6;
+                --active-border: #22d3ee;
             }
             * {
                 margin: 0;
@@ -32,74 +41,104 @@
                     sans-serif;
                 background: var(--bg-primary);
                 color: var(--text-primary);
-                overflow-y: auto;
-                height: auto;
-                margin: 0;
+                overflow: hidden;
+                height: 100vh;
             }
             .container {
                 display: flex;
-                min-height: 100vh;
-            }
-            .sidebar {
-                width: 280px;
-                background: var(--bg-secondary);
-                border-right: 1px solid var(--border-color);
-                position: fixed;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                z-index: 100;
-                display: flex;
-                flex-direction: column;
+                height: 100vh;
                 overflow: hidden;
             }
+            /* Sidebar Styles */
+            .sidebar {
+                width: 260px;
+                min-width: 260px;
+                background: var(--bg-secondary);
+                border-right: 1px solid var(--border-color);
+                display: flex;
+                flex-direction: column;
+                z-index: 100;
+                transition:
+                    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
             .sidebar-header {
-                padding: 20px 16px;
+                padding: 16px;
                 border-bottom: 1px solid var(--border-color);
+            }
+            .header-top {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+                margin-bottom: 12px;
             }
             .logo {
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: 700;
                 text-transform: uppercase;
-                color: var(--text-primary);
+                letter-spacing: 1.5px;
+                color: var(--text-secondary);
             }
             .header-actions {
                 display: flex;
                 gap: 8px;
             }
-            .icon-btn {
-                width: 28px;
-                height: 28px;
-                border: 1px solid var(--border-color);
-                background: transparent;
-                color: var(--text-secondary);
-                border-radius: 4px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s;
+            .search-box {
+                position: relative;
+                margin-top: 8px;
             }
-            .icon-btn:hover {
-                background: var(--hover-bg);
+            .search-input {
+                width: 100%;
+                background: var(--bg-tertiary);
+                border: 1px solid var(--border-color);
                 color: var(--text-primary);
+                padding: 7px 12px;
+                padding-left: 32px;
+                border-radius: 8px;
+                font-size: 13px;
+                outline: none;
+                transition: border-color 0.2s;
+            }
+            .search-input:focus {
+                border-color: var(--accent-color);
+            }
+            .search-icon {
+                position: absolute;
+                left: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--text-tertiary);
+                font-size: 12px;
             }
             .nav-tree {
                 flex: 1;
                 overflow-y: auto;
-                padding: 8px 0;
-                height: calc(100vh - 60px);
+                padding: 12px 0;
+                scrollbar-width: thin;
+                scrollbar-color: transparent transparent;
+                transition: scrollbar-color 0.3s;
             }
+            .nav-tree:hover {
+                scrollbar-color: var(--border-color) transparent;
+            }
+            .nav-tree::-webkit-scrollbar {
+                width: 4px;
+            }
+            .nav-tree::-webkit-scrollbar-thumb {
+                background: transparent;
+                border-radius: 10px;
+            }
+            .nav-tree:hover::-webkit-scrollbar-thumb {
+                background: var(--border-color);
+            }
+
             .nav-item-content {
                 display: flex;
                 align-items: center;
-                padding: 6px 16px;
+                padding: 7px 16px;
                 cursor: pointer;
-                border-left: 2px solid transparent;
-                transition: background 0.15s;
+                border-left: 3px solid transparent;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
             .nav-item-content:hover {
                 background: var(--hover-bg);
@@ -116,39 +155,39 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
+            .nav-item-content.active .nav-text {
+                color: var(--text-primary);
+            }
             .nav-toggle {
-                width: 16px;
-                font-size: 10px;
+                width: 18px;
+                font-size: 9px;
                 color: var(--text-tertiary);
-                transition: transform 0.2s;
+                transition: transform 0.3s;
+                display: inline-block;
+                text-align: center;
+                margin-right: 4px;
             }
             .nav-toggle.expanded {
                 transform: rotate(90deg);
+                color: var(--accent-color);
             }
             .nav-children {
-                margin-left: 12px;
+                margin-left: 14px;
                 border-left: 1px solid var(--border-color);
-                overflow: hidden;
                 display: none;
             }
             .nav-children.show {
                 display: block;
             }
-            .nav-loading {
-                color: var(--text-tertiary);
-                font-size: 12px;
-                padding: 4px 16px;
-                font-style: italic;
-            }
-            .nav-item-content.loading {
-                opacity: 0.6;
-                cursor: wait;
-            }
+
+            /* Main Content Styles */
             .main-content {
                 flex: 1;
-                margin-left: 280px;
                 display: flex;
                 flex-direction: column;
+                min-width: 0;
+                background: var(--bg-primary);
+                transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             }
             .toolbar {
                 height: 56px;
@@ -157,532 +196,384 @@
                 align-items: center;
                 justify-content: space-between;
                 padding: 0 24px;
-                background: var(--bg-secondary);
+                background: rgba(10, 10, 10, 0.8);
+                backdrop-filter: blur(12px);
+                z-index: 50;
                 position: sticky;
                 top: 0;
-                z-index: 50;
             }
             .toolbar-left {
                 display: flex;
                 align-items: center;
-                gap: 12px;
+                gap: 16px;
+                min-width: 0;
             }
             .toolbar-title {
-                font-size: 15px;
+                font-size: 14px;
                 font-weight: 500;
                 color: var(--text-primary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                letter-spacing: 0.3px;
             }
+            .content-viewport {
+                flex: 1;
+                overflow-y: auto;
+                scroll-behavior: smooth;
+                scrollbar-width: thin;
+                scrollbar-color: transparent transparent;
+            }
+            .content-viewport:hover {
+                scrollbar-color: var(--border-color) transparent;
+            }
+            .content-viewport::-webkit-scrollbar {
+                width: 6px;
+            }
+            .content-viewport::-webkit-scrollbar-thumb {
+                background: transparent;
+                border-radius: 10px;
+            }
+            .content-viewport:hover::-webkit-scrollbar-thumb {
+                background: var(--border-color);
+            }
+
             .content-area {
-                padding: 32px 48px;
-                max-width: 900px;
+                padding: 60px 80px;
+
+                max-width: 880px;
+
                 margin: 0 auto;
+
                 width: 100%;
             }
+
+            /* Markdown Styles - Industry Standard Refined */
+
             .markdown-body {
-                line-height: 1.8;
-                color: var(--text-primary);
-                font-size: 15px;
+                line-height: 1.75;
+
+                color: #d1d5db; /* Neutral gray-white */
+
+                font-size: 16px;
+
                 word-wrap: break-word;
             }
+
+            /* Headers */
+
             .markdown-body h1,
             .markdown-body h2,
             .markdown-body h3,
             .markdown-body h4 {
-                margin-top: 24px;
-                margin-bottom: 12px;
-                line-height: 1.3;
+                color: var(--text-primary);
+
                 font-weight: 600;
+
+                line-height: 1.25;
+
+                margin-top: 1.6em;
+
+                margin-bottom: 0.8em;
             }
+
             .markdown-body h1 {
-                font-size: 28px;
+                font-size: 2.25em;
+
+                padding-bottom: 0.3em;
+
                 border-bottom: 1px solid var(--border-color);
-                padding-bottom: 8px;
+
+                margin-top: 0;
             }
+
             .markdown-body h2 {
-                font-size: 22px;
+                font-size: 1.5em;
+
+                padding-bottom: 0.3em;
+
                 border-bottom: 1px solid var(--border-color);
-                padding-bottom: 6px;
             }
+
             .markdown-body h3 {
-                font-size: 18px;
+                font-size: 1.25em;
             }
+
+            /* Paragraphs & Lists */
+
             .markdown-body p {
-                margin-bottom: 16px;
+                margin-bottom: 1.2em;
             }
+
             .markdown-body ul,
             .markdown-body ol {
-                margin-bottom: 16px;
-                padding-left: 24px;
+                margin-bottom: 1.2em;
+
+                padding-left: 2em;
             }
+
             .markdown-body li {
-                margin-bottom: 6px;
+                margin-bottom: 0.4em;
             }
-            .markdown-body code {
-                background: var(--bg-tertiary);
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-family: "Consolas", "Monaco", monospace;
-                font-size: 14px;
+
+            .markdown-body li > ul,
+            .markdown-body li > ol {
+                margin-top: 0.4em;
+
+                margin-bottom: 0;
             }
-            .markdown-body pre {
-                background: var(--bg-tertiary);
-                padding: 16px;
-                border-radius: 6px;
-                overflow-x: auto;
-                margin-bottom: 16px;
-                border: 1px solid var(--border-color);
-            }
-            .markdown-body pre code {
-                background: none;
-                padding: 0;
-            }
-            .markdown-body blockquote {
-                border-left: 3px solid var(--accent-color);
-                padding-left: 16px;
-                margin: 16px 0;
-                color: var(--text-secondary);
-                background: rgba(59, 130, 246, 0.05);
-                padding: 12px 16px;
-                border-radius: 4px;
-            }
+
+            /* Links */
+
             .markdown-body a {
                 color: var(--accent-color);
+
                 text-decoration: none;
+
+                transition: opacity 0.2s;
             }
+
             .markdown-body a:hover {
                 text-decoration: underline;
+
+                opacity: 0.8;
             }
+
+            /* Blockquotes */
+
+            .markdown-body blockquote {
+                margin: 1.5em 0;
+
+                padding: 0.6em 1.2em;
+
+                color: var(--text-secondary);
+
+                border-left: 4px solid var(--accent-color);
+
+                background: rgba(255, 255, 255, 0.02);
+
+                border-radius: 0 6px 6px 0;
+            }
+
+            .markdown-body blockquote p {
+                margin-bottom: 0;
+            }
+
+            /* Code & Pre */
+
+            .markdown-body code {
+                font-family:
+                    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+                    "Liberation Mono", monospace;
+
+                font-size: 0.9em;
+
+                background: rgba(255, 255, 255, 0.08);
+
+                padding: 0.2em 0.4em;
+
+                border-radius: 4px;
+
+                color: #f472b6; /* Soft pink for inline code */
+            }
+
+            .markdown-body pre {
+                margin: 1.5em 0;
+
+                padding: 20px;
+
+                background: #0d0d0e;
+
+                border-radius: 12px;
+
+                overflow: auto;
+
+                border: 1px solid var(--border-color);
+
+                line-height: 1.5;
+            }
+
+            .markdown-body pre code {
+                background: none;
+
+                padding: 0;
+
+                font-size: 0.9em;
+
+                color: #e5e7eb;
+
+                border-radius: 0;
+            }
+
+            /* Tables */
+
             .markdown-body table {
-                border-collapse: collapse;
                 width: 100%;
-                margin-bottom: 16px;
+
+                border-collapse: collapse;
+
+                margin: 1.5em 0;
+
+                font-size: 0.95em;
             }
+
             .markdown-body th,
             .markdown-body td {
+                padding: 10px 14px;
+
                 border: 1px solid var(--border-color);
-                padding: 8px 12px;
+
                 text-align: left;
             }
+
             .markdown-body th {
-                background: var(--bg-tertiary);
+                background: rgba(255, 255, 255, 0.03);
+
                 font-weight: 600;
             }
+
+            .markdown-body tr:nth-child(2n) {
+                background: rgba(255, 255, 255, 0.01);
+            }
+
+            /* Divider */
+
+            .markdown-body hr {
+                height: 1px;
+
+                background: var(--border-color);
+
+                border: none;
+
+                margin: 2.5em 0;
+            }
+
+            /* Images */
+
             .markdown-body img {
                 max-width: 100%;
-                height: auto;
-                border-radius: 6px;
-            }
-            .modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.8);
-                display: none;
-                align-items: center;
-                justify-content: center;
-                z-index: 1000;
-            }
-            .modal-overlay.active {
-                display: flex;
-            }
-            .modal {
-                background: var(--bg-secondary);
-                border: 1px solid var(--border-color);
+
                 border-radius: 8px;
-                width: 90%;
-                max-width: 500px;
-                padding: 24px;
+
+                margin: 1.5em 0;
+
+                display: block;
             }
-            .form-group {
-                margin-bottom: 16px;
-            }
-            .form-input {
-                width: 100%;
-                padding: 8px 12px;
-                background: var(--bg-tertiary);
-                border: 1px solid var(--border-color);
-                color: #fff;
-                border-radius: 4px;
-            }
-            .btn {
-                padding: 6px 12px;
+
+            /* Components */
+            .icon-btn {
+                width: 34px;
+                height: 34px;
                 border: 1px solid var(--border-color);
                 background: transparent;
                 color: var(--text-secondary);
+                border-radius: 8px;
                 cursor: pointer;
-                border-radius: 4px;
-            }
-            .btn.primary {
-                background: var(--accent-color);
-                color: white;
-                border: none;
-            }
-            .toast {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                padding: 10px 20px;
-                background: #333;
-                color: #fff;
-                border-radius: 4px;
-                opacity: 0;
-                transition: 0.3s;
-                pointer-events: none;
-            }
-            .toast.show {
-                opacity: 1;
-            }
-
-            /* 菜单按钮样式 - 在所有屏幕尺寸下都显示 */
-            .mobile-menu-btn {
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                transition: all 0.2s;
+            }
+            .icon-btn:hover {
+                background: var(--hover-bg);
+                color: var(--text-primary);
+                border-color: var(--text-tertiary);
             }
 
-            /* 移动端适配样式 */
-            .mobile-overlay {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.7);
-                z-index: 90;
-                opacity: 0;
-                transition: opacity 0.3s;
-            }
-
-            .mobile-overlay.active {
-                display: block;
-                opacity: 1;
-            }
-
-            /* 桌面端侧边栏收起状态 */
-            .sidebar {
-                transition: transform 0.3s ease-in-out;
+            .mobile-menu-btn {
+                display: flex; /* Always visible as per request */
             }
 
             .sidebar.collapsed {
-                transform: translateX(-100%);
+                margin-left: -260px;
+                transform: translateX(0);
             }
 
-            .sidebar.collapsed ~ .main-content {
-                margin-left: 0;
-                transition: margin-left 0.3s ease-in-out;
-            }
-
-            .main-content {
-                transition: margin-left 0.3s ease-in-out;
-            }
-
-            /* 平板和手机适配 (≤ 1024px) */
-            @media screen and (max-width: 1024px) {
+            @media (max-width: 1024px) {
                 .sidebar {
+                    position: fixed;
+                    top: 0;
+                    bottom: 0;
+                    left: 0;
                     transform: translateX(-100%);
-                    transition: transform 0.3s ease-in-out;
-                    width: 280px;
+                    margin-left: 0 !important;
                 }
-
                 .sidebar.open {
                     transform: translateX(0);
                 }
-
-                .main-content {
-                    margin-left: 0;
-                }
-
                 .content-area {
-                    padding: 20px 16px;
-                    max-width: 100%;
+                    padding: 32px 24px;
                 }
-
-                .toolbar {
-                    padding: 0 12px;
-                    height: 50px;
-                }
-
-                .toolbar-left {
-                    gap: 8px;
-                }
-
-                .toolbar-title {
-                    font-size: 14px;
-                }
-
-                .btn {
-                    padding: 4px 8px;
-                    font-size: 13px;
-                }
-
-                .icon-btn {
-                    width: 32px;
-                    height: 32px;
-                }
-
-                /* 优化 Markdown 内容显示 */
-                .markdown-body {
-                    font-size: 14px;
-                    line-height: 1.7;
-                }
-
-                .markdown-body h1 {
-                    font-size: 24px;
-                }
-
-                .markdown-body h2 {
-                    font-size: 20px;
-                }
-
-                .markdown-body h3 {
-                    font-size: 17px;
-                }
-
-                .markdown-body pre {
-                    padding: 12px;
-                    font-size: 13px;
-                }
-
-                .markdown-body code {
-                    font-size: 13px;
-                }
-
-                .markdown-body table {
-                    font-size: 13px;
-                }
-
-                .markdown-body th,
-                .markdown-body td {
-                    padding: 6px 8px;
-                }
-
-                .nav-item-content {
-                    padding: 8px 16px;
-                    min-height: 40px; /* 增大点击区域 */
-                }
-
-                .nav-text {
-                    font-size: 14px;
-                }
-
-                /* 模态框适配 */
-                .modal {
-                    width: 95%;
-                    padding: 20px;
-                }
-
-                .form-input {
-                    padding: 10px 12px;
-                    font-size: 14px;
-                }
-
-                .btn {
-                    min-height: 36px; /* 增大触摸区域 */
-                }
-
-                /* Toast 位置调整 */
-                .toast {
-                    bottom: 10px;
-                    right: 10px;
-                    left: 10px;
-                    text-align: center;
+                .mobile-overlay.active {
+                    display: block;
                 }
             }
 
-            /* 手机专用适配 (≤ 768px) */
-            @media screen and (max-width: 768px) {
-                .sidebar-header {
-                    padding: 16px 12px;
-                }
-
-                .logo {
-                    font-size: 13px;
-                }
-
-                .content-area {
-                    padding: 16px 12px;
-                }
-
-                .toolbar {
-                    padding: 0 8px;
-                }
-
-                .toolbar-left {
-                    gap: 6px;
-                }
-
-                .header-actions {
-                    gap: 6px;
-                }
-
-                /* 优化导航树显示 */
-                .nav-children {
-                    margin-left: 8px;
-                }
-
-                /* 确保按钮在移动端易于点击 */
-                .icon-btn,
-                .btn {
-                    min-width: 36px;
-                }
-
-                /* 模态框全屏优化 */
-                .modal {
-                    width: 100%;
-                    height: 100%;
-                    max-width: none;
-                    border-radius: 0;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                }
-
-                .modal-actions {
-                    display: flex;
-                    gap: 8px;
-                    margin-top: 16px;
-                }
-
-                .modal-actions .btn {
-                    flex: 1;
-                }
+            /* Placeholder and status */
+            .empty-state {
+                text-align: center;
+                padding: 60px 20px;
+                color: var(--text-tertiary);
             }
-
-            /* 超小屏幕适配 (≤ 480px) */
-            @media screen and (max-width: 480px) {
-                .markdown-body h1 {
-                    font-size: 22px;
-                }
-
-                .markdown-body h2 {
-                    font-size: 18px;
-                }
-
-                .markdown-body h3 {
-                    font-size: 16px;
-                }
-
-                .markdown-body {
-                    font-size: 13px;
-                }
-
-                .toolbar-left {
-                    gap: 4px;
-                }
-
-                .toolbar-title {
-                    font-size: 13px;
-                    max-width: 120px;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-
-                .icon-btn {
-                    width: 28px;
-                    height: 28px;
-                    min-width: 28px;
-                }
-
-                .btn span {
-                    display: none; /* 隐藏按钮文字，只显示图标 */
-                }
-
-                .btn {
-                    padding: 4px 6px;
-                }
+            .loading-spinner {
+                border: 2px solid var(--border-color);
+                border-top: 2px solid var(--accent-color);
+                border-radius: 50%;
+                width: 24px;
+                height: 24px;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 12px;
             }
-
-            /* 触摸设备优化 */
-            @media (hover: none) and (pointer: coarse) {
-                .nav-item-content:hover,
-                .icon-btn:hover,
-                .btn:hover {
-                    background: inherit; /* 移除 hover 效果 */
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
                 }
-
-                .nav-item-content:active,
-                .icon-btn:active,
-                .btn:active {
-                    opacity: 0.7; /* 添加点击反馈 */
-                }
-
-                /* 增大所有可点击元素的触摸区域 */
-                .nav-item-content {
-                    padding: 10px 16px;
-                }
-
-                .icon-btn {
-                    margin: 2px; /* 增加外部间距 */
-                }
-            }
-
-            /* 防止移动端双击缩放 */
-            @media (max-width: 1024px) {
-                button,
-                .icon-btn,
-                .btn,
-                .nav-item-content {
-                    touch-action: manipulation;
-                }
-            }
-
-            /* 移动端键盘弹出时的布局优化 */
-            @media (max-width: 768px) {
-                /* 防止输入框被键盘遮挡 */
-                .form-input:focus {
-                    font-size: 16px; /* iOS 防止缩放 */
-                }
-
-                /* 确保模态框在键盘弹出时能滚动 */
-                .modal-overlay.active {
-                    overflow: auto;
-                    -webkit-overflow-scrolling: touch;
-                }
-
-                .modal {
-                    max-height: 90vh;
-                    overflow-y: auto;
-                    -webkit-overflow-scrolling: touch;
-                }
-            }
-
-            /* 优化 iOS Safari 的滚动行为 */
-            @supports (-webkit-touch-callout: none) {
-                @media (max-width: 1024px) {
-                    body {
-                        -webkit-overflow-scrolling: touch;
-                    }
-
-                    .sidebar,
-                    .main-content,
-                    .modal {
-                        -webkit-overflow-scrolling: touch;
-                    }
+                100% {
+                    transform: rotate(360deg);
                 }
             }
         </style>
     </head>
     <body>
         <div class="container">
+            <!-- Sidebar -->
             <aside class="sidebar" id="sidebar">
                 <div class="sidebar-header">
-                    <div class="logo">NOTES</div>
-                    <div class="header-actions">
-                        <button class="icon-btn" id="refreshBtn" title="刷新">
-                            ↻
-                        </button>
-                        <button class="icon-btn" id="settingsBtn" title="配置">
-                            ⚙
-                        </button>
+                    <div class="header-top">
+                        <div class="logo">My Notes</div>
+                        <div class="header-actions">
+                            <button
+                                class="icon-btn"
+                                id="refreshBtn"
+                                title="刷新"
+                            >
+                                ↻
+                            </button>
+                            <button
+                                class="icon-btn"
+                                id="settingsBtn"
+                                title="配置"
+                            >
+                                ⚙
+                            </button>
+                        </div>
+                    </div>
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input
+                            type="text"
+                            class="search-input"
+                            id="searchInput"
+                            placeholder="搜索笔记..."
+                        />
                     </div>
                 </div>
                 <div class="nav-tree" id="navTree"></div>
             </aside>
+
             <div class="mobile-overlay" id="mobileOverlay"></div>
+
+            <!-- Main Content -->
             <main class="main-content">
                 <div class="toolbar">
                     <div class="toolbar-left">
@@ -692,543 +583,679 @@
                         >
                             ☰
                         </button>
-                        <div class="toolbar-title" id="toolbarTitle">笔记</div>
+                        <div class="toolbar-title" id="toolbarTitle">
+                            选择一个笔记
+                        </div>
                     </div>
                     <div class="toolbar-actions">
                         <button class="btn" id="githubBtn">
-                            <span>🔗</span> GitHub
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 16 16"
+                                fill="currentColor"
+                            >
+                                <path
+                                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                                ></path>
+                            </svg>
+                            GitHub
                         </button>
                     </div>
                 </div>
-                <div class="content-area" id="contentArea"></div>
+                <div class="content-viewport" id="contentViewport">
+                    <div class="content-area" id="contentArea">
+                        <div class="empty-state">
+                            <div
+                                class="logo"
+                                style="
+                                    font-size: 24px;
+                                    margin-bottom: 16px;
+                                    opacity: 0.5;
+                                "
+                            >
+                                NOTES
+                            </div>
+                            <p>从左侧目录选择一个 Markdown 文件开始阅读</p>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
 
+        <!-- Settings Modal -->
         <div class="modal-overlay" id="settingsModal">
             <div class="modal">
+                <h3 class="modal-title">仓库配置</h3>
                 <div class="form-group">
-                    <label class="form-label">GitHub 用户名</label>
-                    <input type="text" class="form-input" id="githubUsername" />
+                    <label class="form-label">GitHub 用户名 / 组织</label>
+                    <input
+                        type="text"
+                        class="form-input"
+                        id="githubUsername"
+                        placeholder="例如: ShingWha"
+                    />
                 </div>
                 <div class="form-group">
                     <label class="form-label">仓库名称</label>
-                    <input type="text" class="form-input" id="githubRepo" />
+                    <input
+                        type="text"
+                        class="form-input"
+                        id="githubRepo"
+                        placeholder="例如: my-notes"
+                    />
                 </div>
                 <div class="form-group">
-                    <label class="form-label">文档路径 (可选)</label>
+                    <label class="form-label">根目录路径 (可选)</label>
                     <input
                         type="text"
                         class="form-input"
                         id="githubPath"
-                        placeholder="例如: docs"
+                        placeholder="例如: notes"
                     />
+                </div>
+                <div class="form-group">
+                    <label class="form-label"
+                        >GitHub Token (私有仓库必填)</label
+                    >
+                    <input
+                        type="password"
+                        class="form-input"
+                        id="githubToken"
+                        placeholder="ghp_xxxxxxxxxxxx"
+                    />
+                    <p
+                        style="
+                            font-size: 11px;
+                            color: var(--text-tertiary);
+                            margin-top: 4px;
+                        "
+                    >
+                        Token 仅保存在本地浏览器缓存中
+                    </p>
                 </div>
                 <div class="modal-actions">
                     <button class="btn" id="settingsCancel">取消</button>
                     <button class="btn primary" id="settingsSave">
-                        保存配置
+                        保存并刷新
                     </button>
                 </div>
             </div>
         </div>
+
         <div class="toast" id="toast"></div>
 
         <script>
-            // --- Config Manager ---
+            /**
+             * 配置管理模块
+             */
             class ConfigManager {
                 constructor() {
                     this.config = this.loadConfig();
-                    // 如果没有有效配置，尝试从 URL 自动检测
-                    if (!this.isValid()) {
-                        this.autoDetectFromUrl();
+                    // 如果 URL 中有参数，优先采用并保存
+                    if (this.autoDetectFromUrl()) {
+                        console.log("检测到 URL 配置，已更新");
                     }
                 }
+
                 loadConfig() {
-                    const stored = localStorage.getItem("blog_config");
-                    return stored
-                        ? JSON.parse(stored)
-                        : { username: "", repo: "", path: "" };
+                    const stored = localStorage.getItem("blog_config_v1");
+                    if (stored) return JSON.parse(stored);
+
+                    // 兼容旧版配置
+                    const oldStored = localStorage.getItem("blog_config");
+                    if (oldStored) {
+                        const old = JSON.parse(oldStored);
+                        return { ...old, token: "" };
+                    }
+
+                    return { username: "", repo: "", path: "", token: "" };
                 }
+
                 saveConfig(config) {
-                    this.config = { ...config };
+                    this.config = { ...this.config, ...config };
                     localStorage.setItem(
-                        "blog_config",
+                        "blog_config_v1",
                         JSON.stringify(this.config),
                     );
                 }
+
                 isValid() {
                     return this.config.username && this.config.repo;
                 }
-                // 从 URL 自动检测配置
+
                 autoDetectFromUrl() {
-                    const url = window.location.href;
-                    const urlObj = new URL(url);
-                    const hostname = urlObj.hostname;
-                    const pathname = urlObj.pathname.replace(/\/$/, ""); // 去除末尾斜杠
-
-                    // 1. 优先检查 URL 参数（手动覆盖）
-                    const params = new URLSearchParams(urlObj.search);
-                    if (params.has("user") || params.has("repo")) {
-                        const username =
-                            params.get("user") || params.get("username");
-                        const repo = params.get("repo");
-                        const path = params.get("path") || "";
-                        if (username && repo) {
-                            this.saveConfig({ username, repo, path });
-                            return true;
-                        }
-                    }
-
-                    // 2. 从 GitHub Pages URL 自动提取
+                    const url = new URL(window.location.href);
+                    const params = url.searchParams;
                     let username = "",
                         repo = "",
-                        path = "";
+                        path = "",
+                        token = "";
 
-                    // 处理不同格式的 GitHub Pages URL
-                    if (hostname === "github.io") {
-                        // 标准格式: https://github.io/username/repo/...
-                        const parts = pathname.split("/").filter((p) => p);
+                    // 1. URL 参数优先
+                    if (
+                        params.has("user") ||
+                        params.has("username") ||
+                        params.has("repo")
+                    ) {
+                        username =
+                            params.get("user") || params.get("username") || "";
+                        repo = params.get("repo") || "";
+                        path = params.get("path") || "";
+                        token = params.get("token") || "";
+                    }
+
+                    // 2. Hash 路由支持 #/user/repo/path
+                    const hash = window.location.hash.slice(1);
+                    if (!username && hash && hash.startsWith("/")) {
+                        const parts = hash.split("/").filter((p) => p);
                         if (parts.length >= 2) {
                             username = parts[0];
                             repo = parts[1];
                             path = parts.slice(2).join("/");
                         }
-                    } else if (hostname.endsWith(".github.io")) {
-                        // 项目页面: https://username.github.io/repo/...
-                        username = hostname.replace(".github.io", "");
-                        const parts = pathname.split("/").filter((p) => p);
-                        if (parts.length >= 1) {
-                            repo = parts[0];
-                            path = parts.slice(1).join("/");
+                    }
+
+                    // 3. GitHub Pages 域名解析
+                    if (!username) {
+                        const hostname = url.hostname;
+                        const pathname = url.pathname.replace(/\/$/, "");
+
+                        if (hostname.endsWith(".github.io")) {
+                            username = hostname.split(".")[0];
+                            const parts = pathname.split("/").filter((p) => p);
+                            if (parts.length >= 1) {
+                                repo = parts[0];
+                                path = parts.slice(1).join("/");
+                            }
+                        } else if (hostname === "github.com") {
+                            const parts = pathname.split("/").filter((p) => p);
+                            if (parts.length >= 2) {
+                                username = parts[0];
+                                repo = parts[1];
+                                path = parts.slice(2).join("/");
+                            }
                         }
                     }
 
-                    // 3. 如果没有提取到路径，使用默认路径 'notes'
-                    if (username && repo && !path) {
-                        path = "notes";
-                    }
-
                     if (username && repo) {
-                        this.saveConfig({ username, repo, path });
-                        console.log("自动检测配置:", { username, repo, path });
+                        const newConfig = {
+                            username,
+                            repo,
+                            path: path || this.config.path,
+                        };
+                        if (token) newConfig.token = token;
+                        this.saveConfig(newConfig);
                         return true;
                     }
                     return false;
                 }
+
                 getApiUrl(subPath = "") {
                     const { username, repo, path } = this.config;
-                    let fullPath = path;
-                    if (subPath) fullPath = subPath;
-                    return `https://api.github.com/repos/${username}/${repo}/contents/${fullPath || ""}`;
+                    const fullPath = subPath || path || "";
+                    return `https://api.github.com/repos/${username}/${repo}/contents/${fullPath}`;
                 }
+
                 getRepoUrl() {
                     return `https://github.com/${this.config.username}/${this.config.repo}`;
                 }
             }
 
-            // --- Data Manager ---
+            /**
+             * 数据交互模块
+             */
             class DataManager {
                 constructor(configManager) {
                     this.configManager = configManager;
                     this.cache = new Map();
+                    this.treeData = null; // 存储转换后的树形结构
+                    this.isIndexing = false;
                 }
-                async fetchPath(path = "") {
-                    const url = this.configManager.getApiUrl(path);
-                    if (this.cache.has(url)) return this.cache.get(url);
-                    const res = await fetch(url);
-                    if (!res.ok) throw new Error("获取失败");
+
+                get headers() {
+                    const h = { Accept: "application/vnd.github.v3+json" };
+                    if (this.configManager.config.token) {
+                        h["Authorization"] =
+                            `token ${this.configManager.config.token}`;
+                    }
+                    return h;
+                }
+
+                // 核心改进：一次性获取全库结构并转换为树形
+                async getFullTree() {
+                    if (this.treeData) return this.treeData;
+
+                    const {
+                        username,
+                        repo,
+                        path: rootPath,
+                    } = this.configManager.config;
+                    // HEAD 代表默认分支
+                    const url = `https://api.github.com/repos/${username}/${repo}/git/trees/HEAD?recursive=1`;
+
+                    const res = await fetch(url, { headers: this.headers });
+                    if (!res.ok)
+                        throw new Error("无法索引仓库，请检查配置或 Token");
+
                     const data = await res.json();
-                    const processed = this.processData(data);
-                    this.cache.set(url, processed);
-                    return processed;
-                }
-                processData(data) {
-                    if (!Array.isArray(data)) data = [data];
-                    return data
-                        .map((item) => ({
-                            type: item.type === "dir" ? "folder" : "file",
-                            name: item.name.replace(/\.md$/, ""),
-                            path: item.path,
-                            download_url: item.download_url,
-                        }))
-                        .filter(
-                            (i) =>
-                                i.type === "folder" || i.path.endsWith(".md"),
+
+                    // 1. 过滤出目标路径下的 .md 文件和文件夹
+                    let rawItems = data.tree.filter((item) => {
+                        // 如果设置了根路径，则只处理该路径下的文件
+                        if (rootPath && !item.path.startsWith(rootPath))
+                            return false;
+                        // 只要文件夹和 .md 文件
+                        return (
+                            item.type === "tree" ||
+                            item.path.toLowerCase().endsWith(".md")
                         );
+                    });
+
+                    // 2. 将扁平路径转换为嵌套树结构
+                    this.treeData = this.buildTree(rawItems, rootPath);
+                    return this.treeData;
                 }
-                async getRaw(url) {
-                    const res = await fetch(url);
+
+                buildTree(items, rootPath) {
+                    const result = [];
+                    const map = { "": { children: result } };
+
+                    // 排序确保父级在子级之前
+                    items.sort((a, b) => a.path.length - b.path.length);
+
+                    items.forEach((item) => {
+                        const path = item.path;
+                        // 如果有 rootPath，计算相对路径
+                        const relativePath = rootPath
+                            ? path.replace(new RegExp(`^${rootPath}/?`), "")
+                            : path;
+                        if (!relativePath) return;
+
+                        const parts = relativePath.split("/");
+                        const name = parts.pop();
+                        const parentPath = parts.join("/");
+
+                        const node = {
+                            name: name.replace(/\.md$/, ""),
+                            path: path,
+                            type: item.type === "tree" ? "folder" : "file",
+                            children: [],
+                            download_url:
+                                item.type === "blob"
+                                    ? `https://raw.githubusercontent.com/${this.configManager.config.username}/${this.configManager.config.repo}/HEAD/${path}`
+                                    : null,
+                        };
+
+                        if (map[parentPath]) {
+                            map[parentPath].children.push(node);
+                        } else {
+                            // 兜底：如果找不到父级（可能父级被过滤了），放根部
+                            result.push(node);
+                        }
+
+                        if (item.type === "tree") {
+                            map[relativePath] = node;
+                        }
+                    });
+
+                    // 排序：文件夹在前，文件名在后
+                    const sortNodes = (nodes) => {
+                        nodes.sort((a, b) => {
+                            if (a.type !== b.type)
+                                return a.type === "folder" ? -1 : 1;
+                            return a.name.localeCompare(b.name);
+                        });
+                        nodes.forEach((n) => {
+                            if (n.children.length) sortNodes(n.children);
+                        });
+                    };
+                    sortNodes(result);
+
+                    return result;
+                }
+
+                async getRawContent(url) {
+                    const res = await fetch(url, { headers: this.headers });
+                    if (!res.ok) throw new Error("无法获取文件内容");
                     return await res.text();
                 }
             }
 
-            // --- UI Manager ---
+            /**
+             * 界面管理模块
+             */
             class UIManager {
                 constructor(config, data) {
                     this.configManager = config;
                     this.dataManager = data;
+                    this.searchMode = false;
+
+                    this.dom = {
+                        sidebar: document.getElementById("sidebar"),
+                        navTree: document.getElementById("navTree"),
+                        contentArea: document.getElementById("contentArea"),
+                        contentViewport:
+                            document.getElementById("contentViewport"),
+                        toolbarTitle: document.getElementById("toolbarTitle"),
+                        settingsModal: document.getElementById("settingsModal"),
+                        searchInput: document.getElementById("searchInput"),
+                        mobileOverlay: document.getElementById("mobileOverlay"),
+                    };
+
                     this.init();
                 }
+
                 init() {
                     this.bindEvents();
                     if (this.configManager.isValid()) {
-                        // 显示自动检测的配置信息
-                        const { username, repo, path } =
-                            this.configManager.config;
-                        console.log("当前配置:", { username, repo, path });
-                        this.showToast(
-                            `已自动配置: ${username}/${repo}${path ? "/" + path : ""}`,
-                        );
                         this.refreshData();
                     } else {
                         this.showSettings();
                     }
                 }
+
                 bindEvents() {
+                    document.getElementById("refreshBtn").onclick = () => {
+                        this.dataManager.treeData = null;
+                        this.refreshData();
+                    };
                     document.getElementById("settingsBtn").onclick = () =>
                         this.showSettings();
+                    document.getElementById("githubBtn").onclick = () => {
+                        window.open(this.configManager.getRepoUrl(), "_blank");
+                    };
+
+                    this.dom.searchInput.oninput = (e) =>
+                        this.handleSearch(e.target.value);
+
+                    const toggleSidebar = () => {
+                        if (window.innerWidth <= 1024) {
+                            this.dom.sidebar.classList.toggle("open");
+                            this.dom.mobileOverlay.classList.toggle("active");
+                        } else {
+                            this.dom.sidebar.classList.toggle("collapsed");
+                        }
+                    };
+                    document.getElementById("mobileMenuBtn").onclick =
+                        toggleSidebar;
+                    this.dom.mobileOverlay.onclick = toggleSidebar;
+
                     document.getElementById("settingsSave").onclick = () =>
                         this.saveSettings();
                     document.getElementById("settingsCancel").onclick = () =>
-                        this.hideModal("settingsModal");
-                    document.getElementById("refreshBtn").onclick = () =>
-                        this.refreshData();
-                    document.getElementById("githubBtn").onclick = () => {
-                        if (this.configManager.isValid()) {
-                            window.open(
-                                this.configManager.getRepoUrl(),
-                                "_blank",
-                            );
-                        } else {
-                            this.showToast("请先配置GitHub仓库");
-                            setTimeout(() => this.showSettings(), 500);
+                        this.hideModal();
+
+                    document.addEventListener("keydown", (e) => {
+                        if (e.key === "Escape") {
+                            this.hideModal();
+                            this.dom.sidebar.classList.remove("open");
+                            this.dom.mobileOverlay.classList.remove("active");
                         }
-                    };
-
-                    // 移动端菜单交互
-                    const mobileMenuBtn =
-                        document.getElementById("mobileMenuBtn");
-                    const sidebar = document.getElementById("sidebar");
-                    const mobileOverlay =
-                        document.getElementById("mobileOverlay");
-
-                    if (mobileMenuBtn) {
-                        mobileMenuBtn.onclick = () => {
-                            // 根据屏幕尺寸执行不同的逻辑
-                            if (window.innerWidth > 1024) {
-                                // 桌面端：收起/展开侧边栏
-                                sidebar.classList.toggle("collapsed");
-                                // 保存状态到 localStorage
-                                const isCollapsed =
-                                    sidebar.classList.contains("collapsed");
-                                localStorage.setItem(
-                                    "sidebar_collapsed",
-                                    isCollapsed,
-                                );
-                            } else {
-                                // 移动端：显示模态框式的侧边栏
-                                sidebar.classList.toggle("open");
-                                mobileOverlay.classList.toggle("active");
-                            }
-                        };
-                    }
-
-                    if (mobileOverlay) {
-                        mobileOverlay.onclick = () => {
-                            sidebar.classList.remove("open");
-                            mobileOverlay.classList.remove("active");
-                        };
-                    }
-
-                    // 点击导航项后自动关闭移动端菜单
-                    document.addEventListener("click", (e) => {
-                        if (
-                            e.target.closest(".nav-item-content") &&
-                            window.innerWidth <= 1024
-                        ) {
-                            // 检查是否是文件（不是文件夹）
-                            const navItem = e.target.closest(".nav-item");
-                            if (navItem) {
-                                const toggle =
-                                    navItem.querySelector(".nav-toggle");
-                                // 如果没有 toggle 说明是文件，点击后关闭菜单
-                                if (!toggle || toggle.textContent === "") {
-                                    setTimeout(() => {
-                                        sidebar.classList.remove("open");
-                                        mobileOverlay.classList.remove(
-                                            "active",
-                                        );
-                                    }, 300);
-                                }
-                            }
+                        if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+                            e.preventDefault();
+                            this.dom.searchInput.focus();
                         }
                     });
-
-                    // 窗口大小改变时重置菜单状态
-                    window.addEventListener("resize", () => {
-                        if (window.innerWidth > 1024) {
-                            // 切换到桌面端
-                            sidebar.classList.remove("open");
-                            mobileOverlay.classList.remove("active");
-                            document.body.style.overflow = "";
-                            // 恢复桌面端的侧边栏状态
-                            const isCollapsed =
-                                localStorage.getItem("sidebar_collapsed") ===
-                                "true";
-                            if (isCollapsed) {
-                                sidebar.classList.add("collapsed");
-                            } else {
-                                sidebar.classList.remove("collapsed");
-                            }
-                        } else {
-                            // 切换到移动端
-                            sidebar.classList.remove("collapsed");
-                        }
-                    });
-
-                    // 页面加载时初始化侧边栏状态
-                    const initSidebarState = () => {
-                        if (window.innerWidth > 1024) {
-                            const isCollapsed =
-                                localStorage.getItem("sidebar_collapsed") ===
-                                "true";
-                            if (isCollapsed) {
-                                sidebar.classList.add("collapsed");
-                            }
-                        }
-                    };
-                    initSidebarState();
-
-                    // 防止移动端菜单打开时页面滚动
-                    const toggleBodyScroll = (disable) => {
-                        document.body.style.overflow = disable ? "hidden" : "";
-                    };
-
-                    // 监听菜单状态变化，控制页面滚动
-                    const observer = new MutationObserver((mutations) => {
-                        mutations.forEach((mutation) => {
-                            if (
-                                mutation.type === "attributes" &&
-                                mutation.attributeName === "class"
-                            ) {
-                                const isOpen =
-                                    sidebar.classList.contains("open");
-                                toggleBodyScroll(isOpen);
-                            }
-                        });
-                    });
-
-                    if (sidebar) {
-                        observer.observe(sidebar, { attributes: true });
-                    }
-
-                    // 模态框交互优化
-                    const settingsModal =
-                        document.getElementById("settingsModal");
-                    if (settingsModal) {
-                        // 点击遮罩层关闭模态框
-                        settingsModal.onclick = (e) => {
-                            if (e.target === settingsModal) {
-                                this.hideModal("settingsModal");
-                            }
-                        };
-
-                        // ESC 键关闭模态框
-                        document.addEventListener("keydown", (e) => {
-                            if (e.key === "Escape") {
-                                if (
-                                    settingsModal.classList.contains("active")
-                                ) {
-                                    this.hideModal("settingsModal");
-                                }
-                                // 同时关闭移动端菜单
-                                if (sidebar.classList.contains("open")) {
-                                    sidebar.classList.remove("open");
-                                    mobileOverlay.classList.remove("active");
-                                }
-                            }
-                        });
-
-                        // 移动端模态框触摸优化
-                        if (window.innerWidth <= 768) {
-                            const modalContent =
-                                settingsModal.querySelector(".modal");
-                            if (modalContent) {
-                                // 防止模态框内容滚动时穿透到背景
-                                modalContent.addEventListener(
-                                    "touchmove",
-                                    (e) => {
-                                        e.stopPropagation();
-                                    },
-                                );
-                            }
-                        }
-                    }
                 }
-                showToast(msg) {
-                    const t = document.getElementById("toast");
-                    t.innerText = msg;
-                    t.classList.add("show");
-                    setTimeout(() => t.classList.remove("show"), 2000);
+
+                showToast(msg, duration = 3000) {
+                    const toast = document.getElementById("toast");
+                    toast.textContent = msg;
+                    toast.classList.add("show");
+                    clearTimeout(this.toastTimer);
+                    this.toastTimer = setTimeout(
+                        () => toast.classList.remove("show"),
+                        duration,
+                    );
                 }
+
                 showSettings() {
-                    const { username, repo, path } = this.configManager.config;
-                    document.getElementById("githubUsername").value = username;
-                    document.getElementById("githubRepo").value = repo;
-                    document.getElementById("githubPath").value = path;
-                    document
-                        .getElementById("settingsModal")
-                        .classList.add("active");
+                    const cfg = this.configManager.config;
+                    document.getElementById("githubUsername").value =
+                        cfg.username || "";
+                    document.getElementById("githubRepo").value =
+                        cfg.repo || "";
+                    document.getElementById("githubPath").value =
+                        cfg.path || "";
+                    document.getElementById("githubToken").value =
+                        cfg.token || "";
+                    this.dom.settingsModal.classList.add("active");
                 }
-                hideModal(id) {
-                    document.getElementById(id).classList.remove("active");
+
+                hideModal() {
+                    this.dom.settingsModal.classList.remove("active");
                 }
+
                 saveSettings() {
+                    const username = document
+                        .getElementById("githubUsername")
+                        .value.trim();
+                    const repo = document
+                        .getElementById("githubRepo")
+                        .value.trim();
+                    const path = document
+                        .getElementById("githubPath")
+                        .value.trim();
+                    const token = document
+                        .getElementById("githubToken")
+                        .value.trim();
+
+                    if (!username || !repo) {
+                        this.showToast("用户名和仓库名为必填项");
+                        return;
+                    }
+
                     this.configManager.saveConfig({
-                        username: document
-                            .getElementById("githubUsername")
-                            .value.trim(),
-                        repo: document
-                            .getElementById("githubRepo")
-                            .value.trim(),
-                        path: document
-                            .getElementById("githubPath")
-                            .value.trim(),
+                        username,
+                        repo,
+                        path,
+                        token,
                     });
-                    this.hideModal("settingsModal");
+                    this.hideModal();
+                    this.dataManager.treeData = null;
                     this.refreshData();
                 }
+
                 async refreshData() {
-                    if (!this.configManager.isValid()) return;
-                    const tree = document.getElementById("navTree");
-                    // 移动端优化加载提示
-                    const loadingMsg =
-                        window.innerWidth <= 768 ? "加载中..." : "加载中...";
-                    tree.innerHTML = `<div style='padding:16px; text-align: center; color: var(--text-tertiary);'>${loadingMsg}</div>`;
+                    this.dom.navTree.innerHTML = `
+                        <div class="empty-state">
+                            <div class="loading-spinner"></div>
+                            <p>正在拉取全量索引...</p>
+                        </div>
+                    `;
                     try {
-                        const data = await this.dataManager.fetchPath();
-                        this.renderTree(tree, data);
-                        this.showToast("同步成功");
+                        const tree = await this.dataManager.getFullTree();
+                        this.renderTree(this.dom.navTree, tree);
+                        this.showToast("数据同步成功");
                     } catch (e) {
-                        this.showToast("同步失败: " + e.message);
+                        this.dom.navTree.innerHTML = `
+                            <div class="empty-state">
+                                <p style="color: #ef4444;">${e.message}</p>
+                                <button class="btn" onclick="ui.showSettings()" style="margin-top:12px">检查配置</button>
+                            </div>
+                        `;
                     }
                 }
-                renderTree(container, items) {
-                    container.innerHTML = "";
+
+                renderTree(container, items, level = 0) {
+                    if (level === 0) container.innerHTML = "";
+
                     items.forEach((item) => {
                         const div = document.createElement("div");
                         div.className = "nav-item";
+
+                        const isFolder = item.type === "folder";
                         div.innerHTML = `
-                        <div class="nav-item-content">
-                            <span class="nav-toggle">${item.type === "folder" ? "▶" : ""}</span>
-                            <span class="nav-text">${item.name}</span>
-                        </div>
-                        <div class="nav-children"></div>
-                    `;
+                            <div class="nav-item-content" style="padding-left: ${16 + level * 12}px">
+                                <span class="nav-toggle">${isFolder ? "▶" : "•"}</span>
+                                <span class="nav-text" title="${item.name}">${item.name}</span>
+                            </div>
+                            ${isFolder ? '<div class="nav-children"></div>' : ""}
+                        `;
+
                         const content = div.querySelector(".nav-item-content");
-                        content.onclick = async () => {
-                            if (item.type === "folder") {
-                                const childDom =
-                                    div.querySelector(".nav-children");
-                                const toggle = div.querySelector(".nav-toggle");
+                        if (isFolder) {
+                            const childrenDiv =
+                                div.querySelector(".nav-children");
+                            const toggle = div.querySelector(".nav-toggle");
+
+                            content.onclick = (e) => {
+                                e.stopPropagation();
                                 const isExpanded =
-                                    childDom.style.display === "block";
-
+                                    childrenDiv.classList.contains("show");
                                 if (isExpanded) {
-                                    // 收起
-                                    requestAnimationFrame(() => {
-                                        childDom.style.display = "none";
-                                        toggle.classList.remove("expanded");
-                                    });
+                                    childrenDiv.classList.remove("show");
+                                    toggle.classList.remove("expanded");
                                 } else {
-                                    // 展开
-                                    if (!childDom.innerHTML) {
-                                        // 显示加载状态
-                                        content.classList.add("loading");
-                                        const loadingDiv =
-                                            document.createElement("div");
-                                        loadingDiv.className = "nav-loading";
-                                        loadingDiv.textContent = "加载中...";
-                                        childDom.appendChild(loadingDiv);
-                                        childDom.style.display = "block";
-
-                                        // 异步加载数据
-                                        setTimeout(async () => {
-                                            try {
-                                                const children =
-                                                    await this.dataManager.fetchPath(
-                                                        item.path,
-                                                    );
-                                                childDom.innerHTML = "";
-                                                requestAnimationFrame(() => {
-                                                    this.renderTree(
-                                                        childDom,
-                                                        children,
-                                                    );
-                                                    content.classList.remove(
-                                                        "loading",
-                                                    );
-                                                });
-                                            } catch (e) {
-                                                childDom.innerHTML = `<div class="nav-loading" style="color: #ef4444;">加载失败</div>`;
-                                                content.classList.remove(
-                                                    "loading",
-                                                );
-                                            }
-                                        }, 10);
-                                    } else {
-                                        requestAnimationFrame(() => {
-                                            childDom.style.display = "block";
-                                            toggle.classList.add("expanded");
-                                        });
+                                    if (
+                                        childrenDiv.innerHTML === "" &&
+                                        item.children.length > 0
+                                    ) {
+                                        this.renderTree(
+                                            childrenDiv,
+                                            item.children,
+                                            level + 1,
+                                        );
                                     }
+                                    childrenDiv.classList.add("show");
+                                    toggle.classList.add("expanded");
                                 }
-                            } else {
-                                this.loadFile(item);
-                            }
-                        };
+                            };
+                        } else {
+                            content.onclick = (e) => {
+                                e.stopPropagation();
+                                this.setActiveFile(content, item);
+                            };
+                        }
                         container.appendChild(div);
                     });
                 }
-                async loadFile(item) {
-                    document.getElementById("toolbarTitle").innerText =
-                        item.name;
-                    const area = document.getElementById("contentArea");
 
-                    // 移动端显示加载状态优化
-                    const loadingText =
-                        window.innerWidth <= 768
-                            ? "加载中..."
-                            : "读取内容中...";
-                    area.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-tertiary);">${loadingText}</div>`;
+                async setActiveFile(element, item) {
+                    document
+                        .querySelectorAll(".nav-item-content")
+                        .forEach((el) => el.classList.remove("active"));
+                    element.classList.add("active");
+                    this.dom.toolbarTitle.textContent = item.name;
+
+                    if (window.innerWidth <= 1024) {
+                        this.dom.sidebar.classList.remove("open");
+                        this.dom.mobileOverlay.classList.remove("active");
+                    }
+
+                    this.dom.contentArea.innerHTML = `
+                        <div class="empty-state">
+                            <div class="loading-spinner"></div>
+                            <p>正在读取 ${item.name}...</p>
+                        </div>
+                    `;
 
                     try {
-                        const md = await this.dataManager.getRaw(
+                        const raw = await this.dataManager.getRawContent(
                             item.download_url,
                         );
-                        // 使用 requestAnimationFrame 优化渲染
-                        requestAnimationFrame(() => {
-                            area.innerHTML = `<div class="markdown-body">${marked.parse(md)}</div>`;
-                            // 移动端自动滚动到顶部
-                            if (window.innerWidth <= 1024) {
-                                area.scrollTop = 0;
-                            }
-                        });
+                        this.renderMarkdown(raw);
+                        this.dom.contentViewport.scrollTop = 0;
                     } catch (e) {
-                        // 移动端错误提示优化
-                        const errorText =
-                            window.innerWidth <= 768
-                                ? "加载失败"
-                                : "读取失败，请重试";
-                        area.innerHTML = `<div style="padding: 20px; text-align: center; color: #ef4444;">${errorText}</div>`;
+                        this.dom.contentArea.innerHTML = `<div class="empty-state"><p style="color:#ef4444">加载内容失败: ${e.message}</p></div>`;
                     }
+                }
+
+                renderMarkdown(md) {
+                    marked.setOptions({
+                        highlight: function (code, lang) {
+                            if (window.Prism && Prism.languages[lang]) {
+                                return Prism.highlight(
+                                    code,
+                                    Prism.languages[lang],
+                                    lang,
+                                );
+                            }
+                            return code;
+                        },
+                        breaks: true,
+                        gfm: true,
+                    });
+
+                    this.dom.contentArea.innerHTML = `<div class="markdown-body">${marked.parse(md)}</div>`;
+                    if (window.Prism) {
+                        this.dom.contentArea
+                            .querySelectorAll("pre code")
+                            .forEach((block) => {
+                                Prism.highlightElement(block);
+                            });
+                    }
+                }
+
+                handleSearch(query) {
+                    query = query.toLowerCase().trim();
+                    if (!query) {
+                        this.searchMode = false;
+                        if (this.dataManager.treeData) {
+                            this.renderTree(
+                                this.dom.navTree,
+                                this.dataManager.treeData,
+                            );
+                        }
+                        return;
+                    }
+
+                    this.searchMode = true;
+                    const results = [];
+                    const flatten = (nodes) => {
+                        nodes.forEach((n) => {
+                            if (
+                                n.type === "file" &&
+                                n.name.toLowerCase().includes(query)
+                            ) {
+                                results.push(n);
+                            }
+                            if (n.children.length) flatten(n.children);
+                        });
+                    };
+                    flatten(this.dataManager.treeData || []);
+
+                    this.renderSearchResults(results);
+                }
+
+                renderSearchResults(results) {
+                    this.dom.navTree.innerHTML = results.length
+                        ? ""
+                        : '<div class="empty-state"><p>未找到相关笔记</p></div>';
+                    results.forEach((item) => {
+                        const div = document.createElement("div");
+                        div.className = "nav-item";
+                        const dirPath = item.path
+                            .split("/")
+                            .slice(0, -1)
+                            .join("/");
+
+                        div.innerHTML = `
+                            <div class="nav-item-content" style="padding: 10px 16px; flex-direction: column; align-items: flex-start; gap: 2px;">
+                                <div class="nav-text" style="color: var(--text-primary); font-weight: 500;">${item.name}</div>
+                                <div style="font-size: 11px; color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+                                    ${dirPath || "/"}
+                                </div>
+                            </div>
+                        `;
+                        div.onclick = () =>
+                            this.setActiveFile(
+                                div.querySelector(".nav-item-content"),
+                                item,
+                            );
+                        this.dom.navTree.appendChild(div);
+                    });
                 }
             }
 
-            // --- Start App ---
+            // 启动应用
             const config = new ConfigManager();
             const data = new DataManager(config);
             const ui = new UIManager(config, data);
+
+            // 全局挂载以便调试
+            window.ui = ui;
         </script>
     </body>
 </html>
