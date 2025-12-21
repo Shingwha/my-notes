@@ -1401,10 +1401,22 @@
                         // 数据加载完成后，根据 URL 路由到具体文件
                         this.handleRouting();
                     } catch (e) {
+                        let helpfulMessage = e.message;
+                        let showSettingsBtn = true;
+
+                        if (e.type === "NOT_FOUND_OR_PRIVATE") {
+                            helpfulMessage =
+                                "<b>找不到仓库</b><br>可能是拼写错误，或者是私有仓库（需在配置中设置 Token）";
+                        } else if (e.type === "AUTH_REQUIRED") {
+                            helpfulMessage =
+                                "<b>Token 验证失败</b><br>请检查配置中的 Token 是否正确";
+                        }
+
                         this.dom.navTree.innerHTML = `
-                            <div class="empty-state">
-                                <p style="color: #ef4444;">${e.message}</p>
-                                <button class="btn" onclick="ui.showSettings()" style="margin-top:12px">检查配置</button>
+                            <div class="empty-state" style="padding: 40px 16px;">
+                                <div style="font-size: 24px; margin-bottom: 12px;">🔒</div>
+                                <p style="color: #ef4444; font-size: 13px; line-height: 1.6;">${helpfulMessage}</p>
+                                ${showSettingsBtn ? '<button class="btn primary" onclick="ui.showSettings()" style="margin-top:16px; width: 100%;">前往配置</button>' : ""}
                             </div>
                         `;
                     }
