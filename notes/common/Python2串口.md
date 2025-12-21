@@ -1,12 +1,3 @@
----
-tags: []
-parent: ""
-collections:
-  - 学习
-  - 基本工具使用
-$version: 0
-$libraryID: 1
----
 # Python2串口
 
 ```python

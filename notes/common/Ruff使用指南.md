@@ -1,12 +1,3 @@
----
-tags: []
-parent: ""
-collections:
-  - 学习
-  - 基本工具使用
-$version: 0
-$libraryID: 1
----
 # Ruff使用指南
 
 Ruff是一个用Rust编写的超快Python代码检查(linter)和格式化工具，比传统工具快10-100倍，集成了flake8、isort、pydocstyle等功能于一体。本指南将介绍Ruff的安装、基本使用和配置方法。

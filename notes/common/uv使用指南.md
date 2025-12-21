@@ -1,12 +1,3 @@
----
-tags: []
-parent: ""
-collections:
-  - 学习
-  - 基本工具使用
-$version: 0
-$libraryID: 1
----
 # uv使用指南
 
 uv是一个基于Rust编写的高性能Python包管理工具，由Astral公司开发，旨在成为"Python的Cargo"。它提供了快速、可靠且易用的包管理体验，可以替代pip、pip-tools和virtualenv等工具。本文将详细介绍uv的安装、基本使用、项目管理、依赖管理以及高级功能。

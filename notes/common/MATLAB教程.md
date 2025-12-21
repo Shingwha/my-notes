@@ -1,12 +1,3 @@
----
-tags: []
-parent: ""
-collections:
-  - 学习
-  - 基本工具使用
-$version: 0
-$libraryID: 1
----
 # MATLAB教程
 
 ## 一、基础操作

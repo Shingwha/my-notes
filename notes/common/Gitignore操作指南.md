@@ -1,12 +1,3 @@
----
-tags: []
-parent: ""
-collections:
-  - 学习
-  - 基本工具使用
-$version: 0
-$libraryID: 1
----
 # **Gitignore操作指南**
 
 `.gitignore` 文件用于告诉 Git 哪些文件或目录应该被忽略，不纳入版本控制。本指南将介绍如何创建、配置 `.gitignore` 文件，并解决常见问题。
