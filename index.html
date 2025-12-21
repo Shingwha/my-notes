@@ -162,6 +162,16 @@
                 top: 0;
                 z-index: 50;
             }
+            .toolbar-left {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            .toolbar-title {
+                font-size: 15px;
+                font-weight: 500;
+                color: var(--text-primary);
+            }
             .content-area {
                 padding: 32px 48px;
                 max-width: 900px;
@@ -360,10 +370,6 @@
                     margin-left: 0;
                 }
 
-                .mobile-menu-btn {
-                    display: flex !important;
-                }
-
                 .content-area {
                     padding: 20px 16px;
                     max-width: 100%;
@@ -372,6 +378,10 @@
                 .toolbar {
                     padding: 0 12px;
                     height: 50px;
+                }
+
+                .toolbar-left {
+                    gap: 8px;
                 }
 
                 .toolbar-title {
@@ -475,6 +485,10 @@
                     padding: 0 8px;
                 }
 
+                .toolbar-left {
+                    gap: 6px;
+                }
+
                 .header-actions {
                     gap: 6px;
                 }
@@ -530,12 +544,22 @@
                     font-size: 13px;
                 }
 
+                .toolbar-left {
+                    gap: 4px;
+                }
+
                 .toolbar-title {
                     font-size: 13px;
-                    max-width: 150px;
+                    max-width: 120px;
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
+                }
+
+                .icon-btn {
+                    width: 28px;
+                    height: 28px;
+                    min-width: 28px;
                 }
 
                 .btn span {
@@ -640,13 +664,10 @@
                         <button
                             class="icon-btn mobile-menu-btn"
                             id="mobileMenuBtn"
-                            style="display: none"
                         >
                             ☰
                         </button>
-                        <div class="toolbar-title" id="toolbarTitle">
-                            欢迎使用
-                        </div>
+                        <div class="toolbar-title" id="toolbarTitle">笔记</div>
                     </div>
                     <div class="toolbar-actions">
                         <button class="btn" id="githubBtn">
