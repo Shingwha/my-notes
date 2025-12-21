@@ -402,6 +402,10 @@
             class ConfigManager {
                 constructor() {
                     this.config = this.loadConfig();
+                    // 如果没有有效配置，尝试从 URL 自动检测
+                    if (!this.isValid()) {
+                        this.autoDetectFromUrl();
+                    }
                 }
                 loadConfig() {
                     const stored = localStorage.getItem("blog_config");
@@ -418,6 +422,62 @@
                 }
                 isValid() {
                     return this.config.username && this.config.repo;
+                }
+                // 从 URL 自动检测配置
+                autoDetectFromUrl() {
+                    const url = window.location.href;
+                    const urlObj = new URL(url);
+                    const hostname = urlObj.hostname;
+                    const pathname = urlObj.pathname.replace(/\/$/, ""); // 去除末尾斜杠
+
+                    // 1. 优先检查 URL 参数（手动覆盖）
+                    const params = new URLSearchParams(urlObj.search);
+                    if (params.has("user") || params.has("repo")) {
+                        const username =
+                            params.get("user") || params.get("username");
+                        const repo = params.get("repo");
+                        const path = params.get("path") || "";
+                        if (username && repo) {
+                            this.saveConfig({ username, repo, path });
+                            return true;
+                        }
+                    }
+
+                    // 2. 从 GitHub Pages URL 自动提取
+                    let username = "",
+                        repo = "",
+                        path = "";
+
+                    // 处理不同格式的 GitHub Pages URL
+                    if (hostname === "github.io") {
+                        // 标准格式: https://github.io/username/repo/...
+                        const parts = pathname.split("/").filter((p) => p);
+                        if (parts.length >= 2) {
+                            username = parts[0];
+                            repo = parts[1];
+                            path = parts.slice(2).join("/");
+                        }
+                    } else if (hostname.endsWith(".github.io")) {
+                        // 项目页面: https://username.github.io/repo/...
+                        username = hostname.replace(".github.io", "");
+                        const parts = pathname.split("/").filter((p) => p);
+                        if (parts.length >= 1) {
+                            repo = parts[0];
+                            path = parts.slice(1).join("/");
+                        }
+                    }
+
+                    // 3. 如果没有提取到路径，使用默认路径 'notes'
+                    if (username && repo && !path) {
+                        path = "notes";
+                    }
+
+                    if (username && repo) {
+                        this.saveConfig({ username, repo, path });
+                        console.log("自动检测配置:", { username, repo, path });
+                        return true;
+                    }
+                    return false;
                 }
                 getApiUrl(subPath = "") {
                     const { username, repo, path } = this.config;
@@ -475,8 +535,18 @@
                 }
                 init() {
                     this.bindEvents();
-                    if (this.configManager.isValid()) this.refreshData();
-                    else this.showSettings();
+                    if (this.configManager.isValid()) {
+                        // 显示自动检测的配置信息
+                        const { username, repo, path } =
+                            this.configManager.config;
+                        console.log("当前配置:", { username, repo, path });
+                        this.showToast(
+                            `已自动配置: ${username}/${repo}${path ? "/" + path : ""}`,
+                        );
+                        this.refreshData();
+                    } else {
+                        this.showSettings();
+                    }
                 }
                 bindEvents() {
                     document.getElementById("settingsBtn").onclick = () =>
