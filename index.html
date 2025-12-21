@@ -850,30 +850,69 @@
              */
             class ConfigManager {
                 constructor() {
+                    this.tokens = this.loadTokens();
                     this.config = this.loadConfig();
+
                     // 优先级：URL 参数 > Hash 路由 > 域名检测 > 本地存储
                     const urlCfg = this.autoDetectFromUrl();
                     if (urlCfg) {
                         this.config = { ...this.config, ...urlCfg };
+                        // 切换到 URL 指定的仓库时，加载该仓库对应的 Token
+                        this.loadTokenForRepo();
                     }
+                }
+
+                loadTokens() {
+                    const stored = localStorage.getItem("blog_tokens_v1");
+                    return stored ? JSON.parse(stored) : {};
+                }
+
+                saveToken(username, repo, token) {
+                    if (!username || !repo) return;
+                    const key = `${username}/${repo}`.toLowerCase();
+                    if (token) {
+                        this.tokens[key] = token;
+                    } else {
+                        delete this.tokens[key];
+                    }
+                    localStorage.setItem(
+                        "blog_tokens_v1",
+                        JSON.stringify(this.tokens),
+                    );
+                }
+
+                loadTokenForRepo() {
+                    const key =
+                        `${this.config.username}/${this.config.repo}`.toLowerCase();
+                    this.config.token = this.tokens[key] || "";
                 }
 
                 loadConfig() {
                     const stored = localStorage.getItem("blog_config_v1");
-                    if (stored) return JSON.parse(stored);
-                    return { username: "", repo: "", path: "", token: "" };
+                    let cfg = stored
+                        ? JSON.parse(stored)
+                        : { username: "", repo: "", path: "", token: "" };
+                    // 加载该仓库保存的 Token
+                    if (cfg.username && cfg.repo) {
+                        const key = `${cfg.username}/${cfg.repo}`.toLowerCase();
+                        cfg.token = this.tokens[key] || "";
+                    }
+                    return cfg;
                 }
 
                 saveConfig(config) {
                     this.config = { ...this.config, ...config };
+                    // 保存当前主配置 (不包含 token，或者包含也没关系，但我们主攻 token 字典)
                     localStorage.setItem(
                         "blog_config_v1",
                         JSON.stringify(this.config),
                     );
-                }
-
-                isValid() {
-                    return this.config.username && this.config.repo;
+                    // 同步到 Token 字典
+                    this.saveToken(
+                        this.config.username,
+                        this.config.repo,
+                        this.config.token,
+                    );
                 }
 
                 autoDetectFromUrl() {
@@ -900,7 +939,6 @@
                             if (parts.length >= 2) {
                                 username = parts[0];
                                 repo = parts[1];
-                                // 注意：此处不设置 path，因为 hash 后面的部分是具体文件路径
                             }
                         }
                     }
@@ -932,6 +970,10 @@
 
                 getRepoUrl() {
                     return `https://github.com/${this.config.username}/${this.config.repo}`;
+                }
+
+                isValid() {
+                    return this.config.username && this.config.repo;
                 }
             }
 
@@ -969,15 +1011,26 @@
 
                     const res = await fetch(url, { headers: this.headers });
                     if (!res.ok) {
-                        const errorMsg =
-                            res.status === 401
-                                ? "Token 无效或已过期"
-                                : res.status === 404
-                                  ? "找不到仓库，请检查用户名和仓库名"
-                                  : res.status === 403
-                                    ? "权限不足或触发 API 限流"
-                                    : `请求失败 (代码: ${res.status})`;
-                        throw new Error(`无法索引仓库: ${errorMsg}`);
+                        let errorType = "FETCH_ERROR";
+                        let errorMsg = `请求失败 (代码: ${res.status})`;
+
+                        if (res.status === 401) {
+                            errorType = "AUTH_REQUIRED";
+                            errorMsg = "Token 无效或已过期";
+                        } else if (res.status === 404) {
+                            // 404 对于 GitHub 来说，也可能是私有仓库但没有 Token
+                            errorType = "NOT_FOUND_OR_PRIVATE";
+                            errorMsg =
+                                "找不到仓库，或该仓库是私有的需设置 Token";
+                        } else if (res.status === 403) {
+                            errorType = "RATE_LIMIT_OR_FORBIDDEN";
+                            errorMsg = "访问受限：权限不足或触发 API 限流";
+                        }
+
+                        const err = new Error(errorMsg);
+                        err.type = errorType;
+                        err.status = res.status;
+                        throw err;
                     }
 
                     const data = await res.json();
@@ -1208,6 +1261,26 @@
                         toggleSidebar;
                     this.dom.mobileOverlay.onclick = toggleSidebar;
 
+                    // 配置面板自动填充 Token 逻辑
+                    const autoFillToken = () => {
+                        const u = document
+                            .getElementById("githubUsername")
+                            .value.trim();
+                        const r = document
+                            .getElementById("githubRepo")
+                            .value.trim();
+                        if (u && r) {
+                            const key = `${u}/${r}`.toLowerCase();
+                            const token = this.configManager.tokens[key] || "";
+                            document.getElementById("githubToken").value =
+                                token;
+                        }
+                    };
+                    document.getElementById("githubUsername").oninput =
+                        autoFillToken;
+                    document.getElementById("githubRepo").oninput =
+                        autoFillToken;
+
                     document.getElementById("settingsSave").onclick = () =>
                         this.saveSettings();
                     document.getElementById("settingsCancel").onclick = () =>
@@ -1374,6 +1447,10 @@
                         this.configManager.config.username = hashUser;
                         this.configManager.config.repo = hashRepo;
                         this.configManager.config.path = ""; // 切换仓库时默认清空子路径
+
+                        // 自动加载该仓库对应的 Token
+                        this.configManager.loadTokenForRepo();
+
                         this.dataManager.treeData = null;
                         this.refreshData();
                         return;
