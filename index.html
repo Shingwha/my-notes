@@ -1336,8 +1336,19 @@
                 }
 
                 handleRouting() {
-                    const hash = window.location.hash.slice(1);
-                    if (!hash || !hash.startsWith("/")) {
+                    let hash = window.location.hash.slice(1);
+                    if (!hash) {
+                        this.showHome(true);
+                        return;
+                    }
+
+                    try {
+                        hash = decodeURIComponent(hash);
+                    } catch (e) {
+                        console.error("Malformed URI", e);
+                    }
+
+                    if (!hash.startsWith("/")) {
                         this.showHome(true);
                         return;
                     }
@@ -1400,6 +1411,51 @@
                             <p>从左侧目录选择一个 Markdown 文件开始阅读</p>
                         </div>
                     `;
+                }
+
+                revealInTree(targetPath) {
+                    // 1. 清除所有高亮
+                    document
+                        .querySelectorAll(".nav-item-content")
+                        .forEach((el) => el.classList.remove("active"));
+
+                    const parts = targetPath.split("/");
+                    let currentPath = "";
+
+                    // 2. 逐层寻找并展开文件夹
+                    for (let i = 0; i < parts.length; i++) {
+                        currentPath = currentPath
+                            ? `${currentPath}/${parts[i]}`
+                            : parts[i];
+                        const el = document.querySelector(
+                            `.nav-item-content[data-path="${currentPath}"]`,
+                        );
+
+                        if (el) {
+                            if (i < parts.length - 1) {
+                                // 是中间文件夹路径
+                                const childrenDiv =
+                                    el.parentElement.querySelector(
+                                        ".nav-children",
+                                    );
+                                if (
+                                    childrenDiv &&
+                                    !childrenDiv.classList.contains("show")
+                                ) {
+                                    // 仅在未展开时模拟点击（触发 renderTree 和样式切换）
+                                    el.click();
+                                }
+                            } else {
+                                // 已经到达目标文件
+                                el.classList.add("active");
+                                // 确保在视口可见
+                                el.scrollIntoView({
+                                    block: "nearest",
+                                    behavior: "smooth",
+                                });
+                            }
+                        }
+                    }
                 }
 
                 renderTree(container, items, level = 0) {
@@ -1467,15 +1523,8 @@
                         }
                     }
 
-                    // 2. UI 状态更新：高亮左侧菜单
-                    document
-                        .querySelectorAll(".nav-item-content")
-                        .forEach((el) => {
-                            el.classList.remove("active");
-                            // 寻找匹配当前路径的菜单项并高亮
-                            if (el.dataset.path === item.path)
-                                el.classList.add("active");
-                        });
+                    // 2. UI 状态更新：高亮左侧菜单并展开文件夹
+                    this.revealInTree(item.path);
 
                     this.dom.toolbarTitle.textContent = item.name;
 
