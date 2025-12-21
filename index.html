@@ -1295,7 +1295,32 @@
 
                         const content = div.querySelector(".nav-item-content");
                         if (isFolder) {
-                            // ... 文件夹点击逻辑保持不变
+                            const childrenDiv =
+                                div.querySelector(".nav-children");
+                            const toggle = div.querySelector(".nav-toggle");
+
+                            content.onclick = (e) => {
+                                e.stopPropagation();
+                                const isExpanded =
+                                    childrenDiv.classList.contains("show");
+                                if (isExpanded) {
+                                    childrenDiv.classList.remove("show");
+                                    toggle.classList.remove("expanded");
+                                } else {
+                                    if (
+                                        childrenDiv.innerHTML === "" &&
+                                        item.children.length > 0
+                                    ) {
+                                        this.renderTree(
+                                            childrenDiv,
+                                            item.children,
+                                            level + 1,
+                                        );
+                                    }
+                                    childrenDiv.classList.add("show");
+                                    toggle.classList.add("expanded");
+                                }
+                            };
                         } else {
                             content.onclick = (e) => {
                                 e.stopPropagation();
