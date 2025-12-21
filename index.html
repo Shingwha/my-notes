@@ -83,6 +83,11 @@
                 text-transform: uppercase;
                 letter-spacing: 1.5px;
                 color: var(--text-secondary);
+                cursor: pointer;
+                transition: color 0.2s;
+            }
+            .logo:hover {
+                color: var(--text-primary);
             }
             .header-actions {
                 display: flex;
@@ -683,7 +688,7 @@
             <aside class="sidebar" id="sidebar">
                 <div class="sidebar-header">
                     <div class="header-top">
-                        <div class="logo">My Notes</div>
+                        <div class="logo" id="sidebarLogo">My Notes</div>
                         <div class="header-actions">
                             <button
                                 class="icon-btn"
@@ -1102,6 +1107,7 @@
                         settingsModal: document.getElementById("settingsModal"),
                         searchInput: document.getElementById("searchInput"),
                         mobileOverlay: document.getElementById("mobileOverlay"),
+                        sidebarLogo: document.getElementById("sidebarLogo"),
                     };
 
                     this.init();
@@ -1182,6 +1188,7 @@
                 }
 
                 bindEvents() {
+                    this.dom.sidebarLogo.onclick = () => this.showHome();
                     document.getElementById("refreshBtn").onclick = () => {
                         this.dataManager.treeData = null;
                         this.refreshData();
@@ -1330,7 +1337,10 @@
 
                 handleRouting() {
                     const hash = window.location.hash.slice(1);
-                    if (!hash || !hash.startsWith("/")) return;
+                    if (!hash || !hash.startsWith("/")) {
+                        this.showHome(true);
+                        return;
+                    }
 
                     const parts = hash.split("/").filter((p) => p);
                     // 我们期望的格式是 /user/repo/path/to/file.md
@@ -1357,6 +1367,39 @@
                     if (targetNode) {
                         this.setActiveFile(targetNode, true); // true 表示静默加载，不重复更新 Hash
                     }
+                }
+
+                showHome(isSilent = false) {
+                    if (!isSilent) {
+                        const url = new URL(window.location.href);
+                        history.pushState(null, "", url.pathname + url.search);
+                    }
+
+                    this.dom.searchInput.value = "";
+                    this.handleSearch("");
+
+                    this.dom.toolbarTitle.textContent = "选择一个笔记";
+                    document
+                        .querySelectorAll(".nav-item-content")
+                        .forEach((el) => {
+                            el.classList.remove("active");
+                        });
+
+                    this.dom.contentArea.innerHTML = `
+                        <div class="empty-state">
+                            <div
+                                class="logo"
+                                style="
+                                    font-size: 24px;
+                                    margin-bottom: 16px;
+                                    opacity: 0.5;
+                                "
+                            >
+                                NOTES
+                            </div>
+                            <p>从左侧目录选择一个 Markdown 文件开始阅读</p>
+                        </div>
+                    `;
                 }
 
                 renderTree(container, items, level = 0) {
