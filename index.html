@@ -623,6 +623,22 @@
                 display: flex;
             }
 
+            .mobile-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(4px);
+                z-index: 90;
+                display: none;
+            }
+
+            .mobile-overlay.active {
+                display: block;
+            }
+
             .modal {
                 background: var(--bg-paper);
                 border: 1.5px solid var(--border-color);
@@ -700,10 +716,15 @@
                 .content-area {
                     padding: 40px 20px;
                 }
+                .sidebar {
+                    margin-left: 0 !important;
+                }
             }
 
-            .sidebar.collapsed {
-                margin-left: -264px; /* width + gap (260 + 4) */
+            @media (min-width: 1025px) {
+                .sidebar.collapsed {
+                    margin-left: -264px; /* width + gap (260 + 4) */
+                }
             }
 
             /* --- Progress Bar --- */
@@ -1514,6 +1535,13 @@
                         this.hideModal();
 
                     window.onhashchange = () => this.handleRouting();
+
+                    window.addEventListener("resize", () => {
+                        if (window.innerWidth > 1024) {
+                            this.dom.sidebar.classList.remove("open");
+                            this.dom.mobileOverlay.classList.remove("active");
+                        }
+                    });
 
                     document.getElementById("importUrlBtn").onclick = () => {
                         const input = document.getElementById("importUrlInput");
