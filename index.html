@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>My Notes - GitHub 笔记浏览</title>
+        <title>My Notes</title>
         <!-- 外部依赖 -->
         <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
         <link
@@ -1376,15 +1376,20 @@
                     });
                     this.hideModal();
 
-                    // 更新 URL Hash 以匹配新仓库
-                    const newHash = `#/${username}/${repo}`;
+                    // 核心修复：强制清空旧数据并重新拉取
+                    this.dataManager.treeData = null;
+
+                    // 更新 URL Hash（包含根目录路径）
+                    let newHash = `#/${username}/${repo}`;
+                    if (path) {
+                        const cleanPath = path.replace(/^\/+|\/+$/g, "");
+                        if (cleanPath) newHash += `/${cleanPath}`;
+                    }
+
                     if (window.location.hash !== newHash) {
                         window.location.hash = newHash;
-                    } else {
-                        // 如果 Hash 没变，手动触发刷新
-                        this.dataManager.treeData = null;
-                        this.refreshData();
                     }
+                    this.refreshData();
                 }
 
                 async refreshData() {
@@ -1424,6 +1429,20 @@
 
                 handleRouting() {
                     let hash = window.location.hash.slice(1);
+                    const { username, repo, path } = this.configManager.config;
+
+                    // 如果 Hash 为空且已有选定仓库，自动补全 Hash 以保持 URL 状态（包含根目录路径）
+                    if (!hash && username && repo) {
+                        let targetHash = `#/${username}/${repo}`;
+                        if (path) {
+                            // 确保路径格式正确，去掉多余斜杠
+                            const cleanPath = path.replace(/^\/+|\/+$/g, "");
+                            if (cleanPath) targetHash += `/${cleanPath}`;
+                        }
+                        window.location.hash = targetHash;
+                        return;
+                    }
+
                     if (!hash) {
                         this.showHome(true);
                         return;
@@ -1475,6 +1494,15 @@
 
                     const filePath = parts.slice(2).join("/");
 
+                    // 如果路径正好等于配置的根路径，视为首页
+                    const cleanConfigPath = path
+                        ? path.replace(/^\/+|\/+$/g, "")
+                        : "";
+                    if (filePath === cleanConfigPath) {
+                        this.showHome(true);
+                        return;
+                    }
+
                     // 在树中寻找该文件
                     const findFile = (nodes) => {
                         for (const node of nodes) {
@@ -1490,17 +1518,51 @@
                     const tree = this.dataManager.treeData || [];
                     const targetNode = findFile(tree);
                     if (targetNode) {
-                        this.setActiveFile(targetNode, true);
+                        if (targetNode.type === "file") {
+                            this.setActiveFile(targetNode, true);
+                        } else {
+                            // 如果是文件夹，展开并显示状态
+                            this.revealInTree(targetNode.path);
+                            this.dom.toolbarTitle.textContent = targetNode.name;
+                            this.dom.contentArea.innerHTML = `
+                                <div class="empty-state">
+                                    <div class="logo" style="font-size: 24px; margin-bottom: 16px; opacity: 0.5;">FOLDER</div>
+                                    <p>正在浏览文件夹: <b>${targetNode.name}</b></p>
+                                    <p style="font-size: 13px; margin-top: 8px; color: var(--text-secondary);">从左侧目录选择文件开始阅读</p>
+                                </div>
+                            `;
+                        }
                     } else {
                         // 如果在当前树中找不到，可能是还没加载完或者路径不对
-                        console.warn("未在目录树中找到文件:", filePath);
+                        console.warn("未在目录树中找到路径:", filePath);
                     }
                 }
 
                 showHome(isSilent = false) {
                     if (!isSilent) {
-                        const url = new URL(window.location.href);
-                        history.pushState(null, "", url.pathname + url.search);
+                        const { username, repo, path } =
+                            this.configManager.config;
+                        if (username && repo) {
+                            let targetHash = `#/${username}/${repo}`;
+                            if (path) {
+                                const cleanPath = path.replace(
+                                    /^\/+|^\/+$/g,
+                                    "",
+                                );
+                                if (cleanPath) targetHash += `/${cleanPath}`;
+                            }
+                            if (window.location.hash !== targetHash) {
+                                window.location.hash = targetHash;
+                                return;
+                            }
+                        } else {
+                            const url = new URL(window.location.href);
+                            history.pushState(
+                                null,
+                                "",
+                                url.pathname + url.search,
+                            );
+                        }
                     }
 
                     this.dom.searchInput.value = "";
@@ -1617,6 +1679,14 @@
                                     }
                                     childrenDiv.classList.add("show");
                                     toggle.classList.add("expanded");
+
+                                    // 更新 URL Hash 以反映当前选定的文件夹
+                                    const { username, repo } =
+                                        this.configManager.config;
+                                    const newHash = `#/${username}/${repo}/${item.path}`;
+                                    if (window.location.hash !== newHash) {
+                                        history.pushState(null, "", newHash);
+                                    }
                                 }
                             };
                         } else {
