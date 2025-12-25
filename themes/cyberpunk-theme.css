@@ -1,0 +1,40 @@
+:root {
+    --bg-primary: #050505;
+    --bg-sidebar: #0a0a0a;
+    --bg-paper: #0f0f0f;
+    --bg-tertiary: #1a1a1a;
+    --text-primary: #00ff9f;
+    --text-secondary: #00b8ff;
+    --text-tertiary: #bd00ff;
+    --border-color: #ff0055;
+    --accent-color: #ff0055;
+    --hover-bg: rgba(255, 0, 85, 0.1);
+    --active-bg: rgba(255, 0, 85, 0.2);
+    --active-border: #00ff9f;
+    --shadow-color: rgba(255, 0, 85, 0.3);
+
+    --code-bg: #000000;
+    --code-text: #00ff9f;
+    --code-border: #ff0055;
+    --token-comment: #6272a4;
+    --token-keyword: #ff79c6;
+    --token-string: #f1fa8c;
+    --token-function: #50fa7b;
+    --token-operator: #ffb86c;
+    --token-class: #8be9fd;
+}
+
+body {
+    background-image: linear-gradient(rgba(255, 0, 85, 0.05) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255, 0, 85, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.sidebar, .main-content, .modal, .icon-btn, .btn, .search-input, .form-input {
+    border-color: var(--border-color) !important;
+    box-shadow: 3px 3px 0px var(--border-color) !important;
+}
+
+.markdown-body h1 {
+    text-shadow: 0 0 10px var(--accent-color);
+}
