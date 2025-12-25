@@ -190,104 +190,98 @@
 
         <!-- Settings Modal -->
         <div class="modal-overlay" id="settingsModal">
-            <div class="modal" style="max-width: 440px">
-                <h3 class="modal-title">仓库配置</h3>
-
-                <!-- 快速导入区 -->
-                <div
-                    style="
-                        background: var(--hover-bg);
-                        padding: 12px;
-                        border-radius: 6px;
-                        margin-bottom: 20px;
-                        border: 1px dashed var(--border-color);
-                    "
-                >
-                    <label
-                        class="form-label"
-                        style="color: var(--accent-color); font-weight: 600"
-                        >快速导入 GitHub 链接</label
-                    >
-                    <div style="display: flex; gap: 8px">
-                        <input
-                            type="text"
-                            class="form-input"
-                            id="importUrlInput"
-                            placeholder="https://github.com/用户名/仓库名"
-                        />
-                        <button
-                            class="btn primary"
-                            id="importUrlBtn"
-                            style="white-space: nowrap"
-                        >
-                            导入
-                        </button>
-                    </div>
-                </div>
-
-                <div
-                    style="
-                        display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        gap: 12px;
-                    "
-                >
-                    <div class="form-group">
-                        <label class="form-label">用户名 / 组织</label>
-                        <input
-                            type="text"
-                            class="form-input"
-                            id="githubUsername"
-                            placeholder="ShingWha"
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">仓库名称</label>
-                        <input
-                            type="text"
-                            class="form-input"
-                            id="githubRepo"
-                            placeholder="my-notes"
-                        />
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">根目录路径 (可选)</label>
-                    <input
-                        type="text"
-                        class="form-input"
-                        id="githubPath"
-                        placeholder="例如: notes"
-                    />
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label"
-                        >GitHub Token (私有仓库必填)</label
-                    >
-                    <input
-                        type="password"
-                        class="form-input"
-                        id="githubToken"
-                        placeholder="ghp_xxxxxxxxxxxx"
-                    />
-                    <p
-                        style="
-                            font-size: 11px;
-                            color: var(--text-tertiary);
-                            margin-top: 4px;
-                        "
-                    >
-                        Token 仅加密保存在本地浏览器缓存中
-                    </p>
-                </div>
-
-                <div class="modal-actions">
-                    <button class="btn" id="settingsCancel">取消</button>
-                    <button class="btn primary" id="settingsSave">
-                        应用并刷新
+            <div class="modal settings-modal">
+                <div class="settings-header">
+                    <h3 class="settings-title">仓库配置</h3>
+                    <button class="settings-close" id="settingsCloseBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
                     </button>
+                </div>
+
+                <div class="settings-body">
+                    <!-- 快速导入卡片 -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            <h4>快速导入</h4>
+                        </div>
+                        <div class="quick-import-row">
+                            <input
+                                type="text"
+                                class="form-input"
+                                id="importUrlInput"
+                                placeholder="粘贴 GitHub 仓库链接"
+                            />
+                            <button class="btn primary" id="importUrlBtn">导入</button>
+                        </div>
+                    </div>
+
+                    <!-- 仓库信息卡片 -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                            </svg>
+                            <h4>仓库信息</h4>
+                        </div>
+                        <div class="form-row-two">
+                            <div class="form-group">
+                                <label class="form-label">所有者</label>
+                                <input type="text" class="form-input" id="githubUsername" placeholder="用户名或组织" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">仓库名</label>
+                                <input type="text" class="form-input" id="githubRepo" placeholder="my-notes" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">根目录（可选）</label>
+                            <input type="text" class="form-input" id="githubPath" placeholder="例如: docs 或 notes" />
+                        </div>
+                    </div>
+
+                    <!-- 访问权限卡片 -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0110 0v4"/>
+                            </svg>
+                            <h4>访问权限</h4>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                GitHub Token
+                                <span class="form-label-hint">私有仓库必填</span>
+                            </label>
+                            <div class="password-input-wrapper">
+                                <input type="password" class="form-input" id="githubToken" placeholder="ghp_xxxxxxxxxxxx" />
+                                <button class="password-toggle" type="button" id="tokenToggleBtn">
+                                    <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                                        <line x1="1" y1="1" x2="23" y2="23"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <p class="form-hint">
+                                Token 仅保存在本地浏览器中，用于访问私有仓库
+                                <a href="https://github.com/settings/tokens/new" target="_blank">如何获取？</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-footer">
+                    <button class="btn" id="settingsCancel">取消</button>
+                    <button class="btn primary" id="settingsSave">保存配置</button>
                 </div>
             </div>
         </div>

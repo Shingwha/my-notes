@@ -811,3 +811,233 @@ body {
         display: flex;
     }
 }
+
+/* --- Settings Modal --- */
+.settings-modal {
+    max-width: 560px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.settings-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+}
+
+.settings-close svg {
+    width: 18px;
+    height: 18px;
+}
+
+.settings-close:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.settings-body {
+    padding: 20px 24px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.settings-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.settings-body::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+/* 卡片样式 */
+.settings-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.settings-card:last-child {
+    margin-bottom: 0;
+}
+
+.settings-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.settings-card-header svg {
+    width: 18px;
+    height: 18px;
+    color: var(--accent-color);
+}
+
+.settings-card-header h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* 快速导入行 */
+.quick-import-row {
+    display: flex;
+    gap: 8px;
+}
+
+.quick-import-row .form-input {
+    flex: 1;
+}
+
+/* 表单两列 */
+.form-row-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.form-label-hint {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 400;
+    padding: 2px 6px;
+    background: var(--hover-bg);
+    border-radius: 4px;
+}
+
+.form-hint {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+.form-hint a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.form-hint a:hover {
+    text-decoration: underline;
+}
+
+/* 密码输入框 */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+}
+
+.password-input-wrapper .form-input {
+    flex: 1;
+    padding-right: 40px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.password-toggle svg {
+    width: 16px;
+    height: 16px;
+}
+
+.password-toggle:hover {
+    color: var(--text-secondary);
+    background: var(--hover-bg);
+}
+
+/* 底部操作栏 */
+.settings-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+}
+
+/* 移动端适配 */
+@media (max-width: 540px) {
+    .settings-modal {
+        max-width: 100%;
+        height: 100vh;
+        border-radius: 0;
+    }
+
+    .settings-header,
+    .settings-body,
+    .settings-footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .form-row-two {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-import-row {
+        flex-direction: column;
+    }
+
+    .quick-import-row .btn {
+        width: 100%;
+    }
+}

@@ -116,8 +116,22 @@ export class UIManager {
         };
         document.getElementById("settingsBtn").onclick = () =>
             this.showSettings();
+        document.getElementById("settingsCloseBtn").onclick = () =>
+            this.hideModal();
         document.getElementById("githubBtn").onclick = () => {
             window.open(this.configManager.getRepoUrl(), "_blank");
+        };
+
+        // Token 显示/隐藏切换
+        const tokenToggleBtn = document.getElementById("tokenToggleBtn");
+        const tokenInput = document.getElementById("githubToken");
+        const eyeOpen = tokenToggleBtn.querySelector(".eye-open");
+        const eyeClosed = tokenToggleBtn.querySelector(".eye-closed");
+        tokenToggleBtn.onclick = () => {
+            const isPassword = tokenInput.type === "password";
+            tokenInput.type = isPassword ? "text" : "password";
+            eyeOpen.style.display = isPassword ? "none" : "block";
+            eyeClosed.style.display = isPassword ? "block" : "none";
         };
 
         this.dom.searchInput.oninput = (e) =>

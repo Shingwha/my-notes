@@ -1,0 +1,2105 @@
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>My Notes</title>
+        <!-- 外部依赖 -->
+        <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
+        <style>
+            /* 1. 引入更有格调的字体 (Google Fonts) */
+            @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap");
+
+            :root {
+                /* Light Mode (Magazine Editorial) */
+                --bg-primary: #f2f0ed;
+                --bg-sidebar: #e8e6e3;
+                --bg-paper: #ffffff;
+                --bg-tertiary: #ffffff;
+                --text-primary: #1a1a1a;
+                --text-secondary: #585858;
+                --text-tertiary: #8a8a8a;
+                --border-color: #1a1a1a;
+                --accent-color: #002fa7;
+                --hover-bg: rgba(0, 0, 0, 0.05);
+                --active-bg: rgba(0, 0, 0, 0.08);
+                --active-border: var(--accent-color);
+                --shadow-color: rgba(0, 0, 0, 0.1);
+
+                /* 代码块专用变量 (亮色模式 - 类似 Github Light) */
+                --code-bg: #f6f8fa;
+                --code-text: #24292e;
+                --code-border: #d0d7de;
+                --token-comment: #6a737d;
+                --token-keyword: #d73a49;
+                --token-string: #032f62;
+                --token-function: #6f42c1;
+                --token-operator: #005cc5;
+                --token-class: #22863a;
+
+                --font-serif: "IBM Plex Serif", "Songti SC", serif;
+                --font-sans: "Inter", -apple-system, sans-serif;
+                --font-mono: "IBM Plex Mono", monospace;
+            }
+
+            [data-theme="dark"] {
+                /* Dark Mode (High-Contrast Tech) */
+                --bg-primary: #0e0e10;
+                --bg-sidebar: #161618;
+                --bg-paper: #1c1c1f;
+                --bg-tertiary: #27272a;
+                --text-primary: #e4e4e7;
+                --text-secondary: #a1a1aa;
+                --text-tertiary: #52525b;
+                --border-color: #3f3f46;
+                --accent-color: #60a5fa;
+                --hover-bg: rgba(255, 255, 255, 0.05);
+                --active-bg: rgba(255, 255, 255, 0.08);
+                --active-border: var(--accent-color);
+                --shadow-color: rgba(0, 0, 0, 0.4);
+
+                /* 代码块专用变量 (深色模式 - 类似 Github Dark) */
+                --code-bg: #0d1117;
+                --code-text: #c9d1d9;
+                --code-border: #30363d;
+                --token-comment: #8b949e;
+                --token-keyword: #ff7b72;
+                --token-string: #a5d6ff;
+                --token-function: #d2a8ff;
+                --token-operator: #79c0ff;
+                --token-class: #7ee787;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: var(--font-sans);
+                background-color: var(--bg-primary);
+                color: var(--text-primary);
+                overflow: hidden;
+                height: 100vh;
+                /* 添加细微的噪点纹理会让它更有质感 */
+                background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+                transition:
+                    background-color 0.3s,
+                    color 0.3s;
+            }
+
+            .container {
+                display: flex;
+                height: 100vh;
+                overflow: hidden;
+                padding: 4px;
+                gap: 4px;
+            }
+
+            /* --- Sidebar Styles (Bento Card - Sharp) --- */
+            .sidebar {
+                width: 260px;
+                min-width: 260px;
+                background: var(--bg-sidebar);
+                border: 1.5px solid var(--border-color);
+                border-radius: 0;
+                display: flex;
+                flex-direction: column;
+                z-index: 100;
+                box-shadow: 2px 2px 0px var(--shadow-color);
+                transition:
+                    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    background-color 0.3s,
+                    border-color 0.3s;
+            }
+
+            .sidebar-header {
+                padding: 16px;
+                border-bottom: 1.5px solid var(--border-color);
+            }
+
+            .header-top {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 12px;
+            }
+
+            .logo {
+                font-family: var(--font-serif);
+                font-weight: 700;
+                font-size: 18px;
+                letter-spacing: 0;
+                color: var(--accent-color);
+                cursor: pointer;
+                transition: color 0.2s;
+            }
+
+            .header-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .search-box {
+                position: relative;
+                margin-top: 8px;
+            }
+
+            .search-input {
+                width: 100%;
+                background: var(--bg-paper);
+                border: 1.5px solid var(--border-color);
+                color: var(--text-primary);
+                padding: 7px 12px;
+                padding-left: 32px;
+                border-radius: 0;
+                font-size: 13px;
+                outline: none;
+                transition:
+                    border-color 0.2s,
+                    box-shadow 0.2s;
+            }
+
+            .search-input:focus {
+                border-color: var(--accent-color);
+                box-shadow: 2px 2px 0px var(--accent-color);
+            }
+
+            .search-icon {
+                position: absolute;
+                left: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--text-tertiary);
+                font-size: 12px;
+            }
+
+            .nav-tree {
+                flex: 1;
+                overflow-y: auto;
+                padding: 12px 0;
+                scrollbar-width: thin;
+                scrollbar-color: transparent transparent;
+            }
+
+            .nav-tree:hover {
+                scrollbar-color: var(--border-color) transparent;
+            }
+
+            .nav-tree::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            .nav-tree::-webkit-scrollbar-thumb {
+                background: transparent;
+                border-radius: 0;
+            }
+
+            .nav-tree:hover::-webkit-scrollbar-thumb {
+                background: var(--border-color);
+            }
+
+            .nav-item-content {
+                display: flex;
+                align-items: center;
+                padding: 7px 16px;
+                cursor: pointer;
+                border-left: 3px solid transparent;
+                transition: all 0.2s;
+            }
+
+            .nav-item-content:hover {
+                background: var(--accent-color) !important;
+            }
+
+            .nav-item-content:hover .nav-text,
+            .nav-item-content:hover .nav-toggle {
+                color: #fff !important;
+            }
+
+            .nav-item-content.active {
+                background: var(--active-bg);
+                border-left-color: var(--active-border);
+            }
+
+            .nav-text {
+                flex: 1;
+                font-size: 13px;
+                color: var(--text-secondary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                transition: color 0.2s;
+            }
+
+            .nav-item-content.active .nav-text {
+                color: var(--text-primary);
+                font-weight: 500;
+            }
+
+            .nav-toggle {
+                width: 18px;
+                font-size: 9px;
+                color: var(--text-tertiary);
+                transition:
+                    transform 0.3s,
+                    color 0.2s;
+                display: inline-block;
+                text-align: center;
+                margin-right: 4px;
+            }
+
+            .nav-toggle.expanded {
+                transform: rotate(90deg);
+                color: var(--accent-color);
+            }
+
+            .nav-children {
+                margin-left: 14px;
+                border-left: 1px solid var(--border-color);
+                display: none;
+            }
+
+            .nav-children.show {
+                display: block;
+            }
+
+            /* --- Main Content Styles (Bento Card - Sharp) --- */
+            .main-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+                background: var(--bg-paper);
+                border: 1.5px solid var(--border-color);
+                border-radius: 0;
+                box-shadow: 2px 2px 0px var(--shadow-color);
+                transition:
+                    margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    background-color 0.3s,
+                    border-color 0.3s;
+                position: relative; /* For loading bar */
+            }
+
+            .toolbar {
+                height: 56px;
+                border-bottom: 1.5px solid var(--border-color);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 24px;
+                background: transparent;
+                z-index: 50;
+                position: sticky;
+                top: 0;
+            }
+
+            .toolbar-left {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                min-width: 0;
+                flex: 1;
+            }
+
+            .toolbar-title {
+                font-family: var(--font-mono);
+                font-size: 11px; /* Smaller for path */
+                text-transform: none; /* No uppercase for path */
+                letter-spacing: 0.5px;
+                color: var(--text-tertiary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .toolbar-title span {
+                color: var(--text-primary);
+                font-weight: 600;
+                font-size: 14px;
+                font-family: var(--font-sans);
+            }
+
+            .content-viewport {
+                flex: 1;
+                overflow-y: auto;
+                scroll-behavior: smooth;
+                scrollbar-width: thin;
+                scrollbar-color: var(--border-color) transparent;
+            }
+
+            .content-viewport::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .content-viewport::-webkit-scrollbar-thumb {
+                background: var(--border-color);
+                border-radius: 0;
+            }
+
+            .content-area {
+                padding: 60px 80px;
+                max-width: 880px;
+                margin: 0 auto;
+                width: 100%;
+            }
+
+            /* --- Modern Editorial Typography --- */
+            .markdown-body {
+                line-height: 1.75;
+                color: var(--text-primary);
+                font-size: 16px;
+                word-wrap: break-word;
+                font-family: var(--font-sans);
+            }
+
+            .markdown-body h1,
+            .markdown-body h2,
+            .markdown-body h3,
+            .markdown-body h4 {
+                font-family: var(--font-serif);
+                color: var(--text-primary);
+                font-weight: 700;
+                line-height: 1.25;
+                margin-top: 1.6em;
+                margin-bottom: 0.8em;
+                letter-spacing: -0.02em;
+            }
+
+            .markdown-body h1 {
+                font-size: 2.5em;
+                padding-bottom: 16px;
+                border-bottom: 3px solid var(--accent-color);
+                margin-top: 0;
+            }
+
+            .markdown-body h2 {
+                font-size: 1.75em;
+                padding-bottom: 0.3em;
+                border-bottom: 1.5px solid var(--border-color);
+            }
+
+            .markdown-body p {
+                margin-bottom: 1.2em;
+            }
+
+            .markdown-body ul,
+            .markdown-body ol {
+                margin-bottom: 1.2em;
+                padding-left: 2em;
+            }
+
+            .markdown-body li {
+                margin-bottom: 0.4em;
+            }
+
+            .markdown-body a {
+                color: var(--accent-color);
+                text-decoration: none;
+                transition: opacity 0.2s;
+                border-bottom: 1.5px solid transparent;
+            }
+
+            .markdown-body a:hover {
+                border-bottom-color: var(--accent-color);
+            }
+
+            .markdown-body blockquote {
+                margin: 1.2em 0;
+                padding: 0.6em 1.2em;
+                color: var(--text-secondary);
+                border-left: 4px solid var(--accent-color);
+                background: var(--hover-bg);
+            }
+
+            .markdown-body blockquote > :first-child {
+                margin-top: 0;
+            }
+
+            .markdown-body blockquote > :last-child {
+                margin-bottom: 0;
+            }
+
+            .markdown-body code {
+                font-family: var(--font-mono);
+                font-size: 0.85em;
+                background: var(--code-bg);
+                padding: 0.2em 0.4em;
+                border-radius: 0;
+                color: var(--accent-color);
+                border: 1.5px solid var(--code-border);
+            }
+
+            .markdown-body pre {
+                margin: 1.5em 0;
+                padding: 16px;
+                background: var(--code-bg);
+                border-radius: 0;
+                overflow: auto;
+                border: 1.5px solid var(--code-border);
+                box-shadow: none; /* Removed shadow */
+                position: relative;
+            }
+
+            .markdown-body pre code {
+                background: none;
+                padding: 0;
+                font-size: 0.9em;
+                color: var(--code-text);
+                border: none;
+                display: block;
+                line-height: 1.5;
+            }
+
+            /* Prism Token Overrides - 强制覆盖外部主题以适配亮暗切换 */
+            .token.comment,
+            .token.prolog,
+            .token.doctype,
+            .token.cdata {
+                color: var(--token-comment) !important;
+                font-style: italic;
+            }
+            .token.namespace {
+                opacity: 0.7;
+            }
+            .token.property,
+            .token.tag,
+            .token.boolean,
+            .token.number,
+            .token.constant,
+            .token.symbol,
+            .token.deleted {
+                color: var(--token-keyword) !important;
+            }
+            .token.selector,
+            .token.attr-name,
+            .token.string,
+            .token.char,
+            .token.builtin,
+            .token.inserted {
+                color: var(--token-string) !important;
+            }
+            .token.operator,
+            .token.entity,
+            .token.url,
+            .language-css .token.string,
+            .style .token.string {
+                color: var(--token-operator) !important;
+                background: none !important;
+            }
+            .token.atrule,
+            .token.attr-value,
+            .token.keyword {
+                color: var(--token-keyword) !important;
+                font-weight: 600;
+            }
+            .token.function,
+            .token.class-name {
+                color: var(--token-function) !important;
+            }
+            .token.regex,
+            .token.important,
+            .token.variable {
+                color: var(--token-operator) !important;
+            }
+
+            /* 代码高亮在亮色模式下的对比度增强 */
+            [data-theme="light"] .token.keyword {
+                color: #d73a49 !important;
+            }
+            [data-theme="light"] .token.function {
+                color: #6f42c1 !important;
+            }
+
+            .markdown-body table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1.5em 0;
+            }
+
+            .markdown-body th,
+            .markdown-body td {
+                padding: 12px;
+                border: 1.5px solid var(--border-color);
+                text-align: left;
+            }
+
+            .markdown-body th {
+                background: var(--hover-bg);
+                font-weight: 600;
+            }
+
+            .markdown-body hr {
+                height: 2px;
+                background: var(--border-color);
+                border: none;
+                margin: 3em 0;
+            }
+
+            .markdown-body img {
+                max-width: 100%;
+                border-radius: 0;
+                border: 1.5px solid var(--border-color);
+                margin: 2em 0;
+            }
+
+            /* Components */
+            .icon-btn {
+                width: 32px;
+                height: 32px;
+                border: 1.5px solid var(--border-color);
+                background: transparent;
+                color: var(--text-primary);
+                border-radius: 0;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+            }
+
+            .icon-btn:hover {
+                background: var(--accent-color);
+                color: #fff !important;
+                border-color: var(--accent-color);
+            }
+
+            .btn {
+                padding: 6px 16px;
+                border: 1.5px solid var(--border-color);
+                background: transparent;
+                color: var(--text-primary);
+                cursor: pointer;
+                border-radius: 0;
+                font-size: 13px;
+                transition: all 0.2s;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .btn:hover {
+                background: var(--accent-color);
+                color: #fff !important;
+                border-color: var(--accent-color);
+            }
+
+            .btn.primary {
+                background: var(--accent-color);
+                color: #fff;
+                border-color: var(--accent-color);
+                font-weight: 600;
+            }
+
+            /* Modal & Form */
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(4px);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+            }
+
+            .modal-overlay.active {
+                display: flex;
+            }
+
+            .mobile-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(4px);
+                z-index: 90;
+                display: none;
+            }
+
+            .mobile-overlay.active {
+                display: block;
+            }
+
+            .modal {
+                background: var(--bg-paper);
+                border: 1.5px solid var(--border-color);
+                border-radius: 0;
+                width: 100%;
+                max-width: 400px;
+                padding: 24px;
+                box-shadow: 4px 4px 0px var(--shadow-color);
+            }
+
+            .form-input {
+                width: 100%;
+                background: var(--bg-paper);
+                border: 1.5px solid var(--border-color);
+                color: var(--text-primary);
+                padding: 8px 12px;
+                border-radius: 0;
+                font-size: 13px;
+                outline: none;
+            }
+
+            .form-input:focus {
+                border-color: var(--accent-color);
+                box-shadow: 2px 2px 0px var(--accent-color);
+            }
+
+            /* Toast */
+            .toast {
+                position: fixed;
+                bottom: 24px;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                background: var(--accent-color);
+                color: #fff;
+                padding: 10px 20px;
+                border-radius: 0;
+                font-size: 13px;
+                font-weight: 600;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 2000;
+                box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
+            }
+
+            .toast.show {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            /* Mobile */
+            @media (max-width: 1024px) {
+                .container {
+                    padding: 0;
+                    gap: 0;
+                }
+                .sidebar {
+                    position: fixed;
+                    top: 0;
+                    bottom: 0;
+                    left: 0;
+                    border-radius: 0;
+                    transform: translateX(-100%);
+                    box-shadow: none;
+                    border-left: none;
+                    border-top: none;
+                    border-bottom: none;
+                }
+                .sidebar.open {
+                    transform: translateX(0);
+                    box-shadow: 4px 0px 0px var(--shadow-color);
+                }
+                .main-content {
+                    border: none;
+                    border-radius: 0;
+                    box-shadow: none;
+                }
+                .content-area {
+                    padding: 40px 20px;
+                }
+                .sidebar {
+                    margin-left: 0 !important;
+                }
+            }
+
+            @media (min-width: 1025px) {
+                .sidebar.collapsed {
+                    margin-left: -264px; /* width + gap (260 + 4) */
+                }
+            }
+
+            /* --- Progress Bar --- */
+            .loading-bar {
+                position: absolute;
+                top: 0; /* Flush with top border */
+                left: 0;
+                height: 2.5px;
+                background: var(--accent-color);
+                width: 0;
+                transition: width 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);
+                z-index: 100;
+            }
+
+            .loading-bar.no-transition {
+                transition: none !important;
+            }
+
+            @keyframes flashSquare {
+                0%,
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.3;
+                    transform: scale(0.8);
+                }
+            }
+            .loading-spinner {
+                width: 20px;
+                height: 20px;
+                background-color: var(--accent-color);
+                animation: flashSquare 1s infinite ease-in-out;
+                margin: 20px auto;
+            }
+
+            .empty-state {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 40px 16px;
+                text-align: center;
+                color: var(--text-tertiary);
+                min-height: 200px;
+                height: 100%;
+            }
+
+            .empty-state p {
+                font-size: 13px;
+                line-height: 1.6;
+            }
+
+            /* SVG Icon Fixes */
+            .icon-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="header-top">
+                        <div class="logo" id="sidebarLogo">My Notes</div>
+                        <div class="header-actions">
+                            <button
+                                class="icon-btn"
+                                id="themeToggleBtn"
+                                title="切换主题"
+                            >
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <circle cx="12" cy="12" r="9" />
+                                    <path d="M12 3v18" />
+                                    <path
+                                        d="M12 3a9 9 0 0 1 0 18z"
+                                        fill="currentColor"
+                                    />
+                                </svg>
+                            </button>
+                            <button
+                                class="icon-btn"
+                                id="refreshBtn"
+                                title="刷新"
+                            >
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path
+                                        d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
+                                    />
+                                </svg>
+                            </button>
+                            <button
+                                class="icon-btn"
+                                id="settingsBtn"
+                                title="配置"
+                            >
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+                                    <path
+                                        d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="search-box">
+                        <span class="search-icon">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                style="width: 14px; height: 14px"
+                            >
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="M21 21l-4.35-4.35" />
+                            </svg>
+                        </span>
+                        <input
+                            type="text"
+                            class="search-input"
+                            id="searchInput"
+                            placeholder="搜索笔记..."
+                        />
+                    </div>
+                </div>
+                <div class="nav-tree" id="navTree"></div>
+            </aside>
+
+            <div class="mobile-overlay" id="mobileOverlay"></div>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="loading-bar" id="loadingBar"></div>
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <button
+                            class="icon-btn mobile-menu-btn"
+                            id="mobileMenuBtn"
+                        >
+                            ☰
+                        </button>
+                        <div class="toolbar-title" id="toolbarTitle">
+                            选择一个笔记
+                        </div>
+                    </div>
+                    <div class="toolbar-actions">
+                        <button class="icon-btn" id="githubBtn" title="GitHub">
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 16 16"
+                                fill="currentColor"
+                            >
+                                <path
+                                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                                ></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="content-viewport" id="contentViewport">
+                    <div class="content-area" id="contentArea">
+                        <div class="empty-state">
+                            <div
+                                class="logo"
+                                style="
+                                    font-size: 24px;
+                                    margin-bottom: 16px;
+                                    opacity: 0.5;
+                                "
+                            >
+                                NOTES
+                            </div>
+                            <p>从左侧目录选择一个 Markdown 文件开始阅读</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Settings Modal -->
+        <div class="modal-overlay" id="settingsModal">
+            <div class="modal" style="max-width: 440px">
+                <h3 class="modal-title">仓库配置</h3>
+
+                <!-- 快速导入区 -->
+                <div
+                    style="
+                        background: var(--hover-bg);
+                        padding: 12px;
+                        border-radius: 6px;
+                        margin-bottom: 20px;
+                        border: 1px dashed var(--border-color);
+                    "
+                >
+                    <label
+                        class="form-label"
+                        style="color: var(--accent-color); font-weight: 600"
+                        >快速导入 GitHub 链接</label
+                    >
+                    <div style="display: flex; gap: 8px">
+                        <input
+                            type="text"
+                            class="form-input"
+                            id="importUrlInput"
+                            placeholder="https://github.com/用户名/仓库名"
+                        />
+                        <button
+                            class="btn primary"
+                            id="importUrlBtn"
+                            style="white-space: nowrap"
+                        >
+                            导入
+                        </button>
+                    </div>
+                </div>
+
+                <div
+                    style="
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 12px;
+                    "
+                >
+                    <div class="form-group">
+                        <label class="form-label">用户名 / 组织</label>
+                        <input
+                            type="text"
+                            class="form-input"
+                            id="githubUsername"
+                            placeholder="ShingWha"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">仓库名称</label>
+                        <input
+                            type="text"
+                            class="form-input"
+                            id="githubRepo"
+                            placeholder="my-notes"
+                        />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">根目录路径 (可选)</label>
+                    <input
+                        type="text"
+                        class="form-input"
+                        id="githubPath"
+                        placeholder="例如: notes"
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"
+                        >GitHub Token (私有仓库必填)</label
+                    >
+                    <input
+                        type="password"
+                        class="form-input"
+                        id="githubToken"
+                        placeholder="ghp_xxxxxxxxxxxx"
+                    />
+                    <p
+                        style="
+                            font-size: 11px;
+                            color: var(--text-tertiary);
+                            margin-top: 4px;
+                        "
+                    >
+                        Token 仅加密保存在本地浏览器缓存中
+                    </p>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn" id="settingsCancel">取消</button>
+                    <button class="btn primary" id="settingsSave">
+                        应用并刷新
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="toast" id="toast"></div>
+
+        <script>
+            /**
+             * 配置管理模块
+             */
+            class ConfigManager {
+                constructor() {
+                    this.tokens = this.loadTokens();
+                    this.config = this.loadConfig();
+
+                    // 优先级：URL 参数 > Hash 路由 > 域名检测 > 本地存储
+                    const urlCfg = this.autoDetectFromUrl();
+                    if (urlCfg) {
+                        this.config = { ...this.config, ...urlCfg };
+                        // 切换到 URL 指定的仓库时，加载该仓库对应的 Token
+                        this.loadTokenForRepo();
+                    }
+                }
+
+                loadTokens() {
+                    const stored = localStorage.getItem("blog_tokens_v1");
+                    return stored ? JSON.parse(stored) : {};
+                }
+
+                saveToken(username, repo, token) {
+                    if (!username || !repo) return;
+                    const key = `${username}/${repo}`.toLowerCase();
+                    if (token) {
+                        this.tokens[key] = token;
+                    } else {
+                        delete this.tokens[key];
+                    }
+                    localStorage.setItem(
+                        "blog_tokens_v1",
+                        JSON.stringify(this.tokens),
+                    );
+                }
+
+                loadTokenForRepo() {
+                    const key =
+                        `${this.config.username}/${this.config.repo}`.toLowerCase();
+                    this.config.token = this.tokens[key] || "";
+                }
+
+                loadConfig() {
+                    const stored = localStorage.getItem("blog_config_v1");
+                    let cfg = stored
+                        ? JSON.parse(stored)
+                        : { username: "", repo: "", path: "", token: "" };
+                    // 加载该仓库保存的 Token
+                    if (cfg.username && cfg.repo) {
+                        const key = `${cfg.username}/${cfg.repo}`.toLowerCase();
+                        cfg.token = this.tokens[key] || "";
+                    }
+                    return cfg;
+                }
+
+                saveConfig(config) {
+                    this.config = { ...this.config, ...config };
+                    // 保存当前主配置 (不包含 token，或者包含也没关系，但我们主攻 token 字典)
+                    localStorage.setItem(
+                        "blog_config_v1",
+                        JSON.stringify(this.config),
+                    );
+                    // 同步到 Token 字典
+                    this.saveToken(
+                        this.config.username,
+                        this.config.repo,
+                        this.config.token,
+                    );
+                }
+
+                autoDetectFromUrl(customUrl = null) {
+                    let urlStr = customUrl || window.location.href;
+                    // 如果不包含协议头，补全协议头以便 URL 构造函数解析
+                    if (
+                        urlStr &&
+                        !urlStr.includes("://") &&
+                        (urlStr.startsWith("github.com") ||
+                            urlStr.startsWith("www.github.com"))
+                    ) {
+                        urlStr = "https://" + urlStr;
+                    }
+
+                    try {
+                        const url = new URL(urlStr);
+                        const params = url.searchParams;
+                        let username = "",
+                            repo = "",
+                            path = "",
+                            token = "";
+
+                        // 1. GitHub 标准 URL 支持 (https://github.com/user/repo)
+                        if (url.hostname === "github.com") {
+                            const parts = url.pathname
+                                .split("/")
+                                .filter((p) => p);
+                            if (parts.length >= 2) {
+                                username = parts[0];
+                                repo = parts[1];
+                                // 如果路径中有 /tree/main/notes 这种，可以尝试解析
+                                if (parts[2] === "tree" && parts[4]) {
+                                    path = parts.slice(4).join("/");
+                                }
+                            }
+                        }
+
+                        // 2. URL 参数优先 (?user=xxx&repo=xxx)
+                        if (
+                            !username &&
+                            (params.has("user") || params.has("username"))
+                        ) {
+                            username =
+                                params.get("user") || params.get("username");
+                            repo = params.get("repo") || "";
+                            path = params.get("path") || "";
+                            token = params.get("token") || "";
+                        }
+
+                        // 3. Hash 路由 (#/user/repo/...)
+                        if (!username) {
+                            const hash = window.location.hash.slice(1);
+                            if (hash && hash.startsWith("/")) {
+                                const parts = hash.split("/").filter((p) => p);
+                                if (parts.length >= 2) {
+                                    username = parts[0];
+                                    repo = parts[1];
+                                }
+                            }
+                        }
+
+                        // 4. GitHub Pages 域名 (username.github.io/repo)
+                        if (!username) {
+                            const hostname = url.hostname;
+                            const pathname = url.pathname.replace(/\/$/, "");
+                            if (hostname.endsWith(".github.io")) {
+                                username = hostname.split(".")[0];
+                                const parts = pathname
+                                    .split("/")
+                                    .filter((p) => p);
+                                if (parts.length >= 1) {
+                                    repo = parts[0];
+                                }
+                            }
+                        }
+
+                        if (username && repo) {
+                            return { username, repo, path, token };
+                        }
+                    } catch (e) {
+                        console.error("Invalid URL:", urlStr);
+                    }
+                    return null;
+                }
+
+                getApiUrl(subPath = "") {
+                    const { username, repo, path } = this.config;
+                    const fullPath = subPath || path || "";
+                    return `https://api.github.com/repos/${username}/${repo}/contents/${fullPath}`;
+                }
+
+                getRepoUrl() {
+                    return `https://github.com/${this.config.username}/${this.config.repo}`;
+                }
+
+                isValid() {
+                    return this.config.username && this.config.repo;
+                }
+            }
+
+            /**
+             * 数据交互模块
+             */
+            class DataManager {
+                constructor(configManager) {
+                    this.configManager = configManager;
+                    this.cache = new Map();
+                    this.treeData = null; // 存储转换后的树形结构
+                    this.isIndexing = false;
+                }
+
+                get headers() {
+                    const h = { Accept: "application/vnd.github.v3+json" };
+                    if (this.configManager.config.token) {
+                        h["Authorization"] =
+                            `token ${this.configManager.config.token}`;
+                    }
+                    return h;
+                }
+
+                // 核心改进：一次性获取全库结构并转换为树形
+                async getFullTree() {
+                    if (this.treeData) return this.treeData;
+
+                    const {
+                        username,
+                        repo,
+                        path: rootPath,
+                    } = this.configManager.config;
+                    // HEAD 代表默认分支
+                    const url = `https://api.github.com/repos/${username}/${repo}/git/trees/HEAD?recursive=1`;
+
+                    const res = await fetch(url, { headers: this.headers });
+                    if (!res.ok) {
+                        let errorType = "FETCH_ERROR";
+                        let errorMsg = `请求失败 (代码: ${res.status})`;
+
+                        if (res.status === 401) {
+                            errorType = "AUTH_REQUIRED";
+                            errorMsg = "Token 无效或已过期";
+                        } else if (res.status === 404) {
+                            // 404 对于 GitHub 来说，也可能是私有仓库但没有 Token
+                            errorType = "NOT_FOUND_OR_PRIVATE";
+                            errorMsg =
+                                "找不到仓库，或该仓库是私有的需设置 Token";
+                        } else if (res.status === 403) {
+                            errorType = "RATE_LIMIT_OR_FORBIDDEN";
+                            errorMsg = "访问受限：权限不足或触发 API 限流";
+                        }
+
+                        const err = new Error(errorMsg);
+                        err.type = errorType;
+                        err.status = res.status;
+                        throw err;
+                    }
+
+                    const data = await res.json();
+
+                    // 1. 过滤出目标路径下的 .md 文件和文件夹
+                    let rawItems = data.tree.filter((item) => {
+                        // 如果设置了根路径，则只处理该路径下的文件
+                        if (rootPath && !item.path.startsWith(rootPath))
+                            return false;
+                        // 只要文件夹和 .md 文件
+                        return (
+                            item.type === "tree" ||
+                            item.path.toLowerCase().endsWith(".md")
+                        );
+                    });
+
+                    // 2. 将扁平路径转换为嵌套树结构
+                    this.treeData = this.buildTree(rawItems, rootPath);
+                    return this.treeData;
+                }
+
+                buildTree(items, rootPath) {
+                    const result = [];
+                    const map = { "": { children: result } };
+
+                    // 排序确保父级在子级之前
+                    items.sort((a, b) => a.path.length - b.path.length);
+
+                    items.forEach((item) => {
+                        const path = item.path;
+                        // 如果有 rootPath，计算相对路径
+                        const relativePath = rootPath
+                            ? path.replace(new RegExp(`^${rootPath}/?`), "")
+                            : path;
+                        if (!relativePath) return;
+
+                        const parts = relativePath.split("/");
+                        const name = parts.pop();
+                        const parentPath = parts.join("/");
+
+                        const node = {
+                            name: name.replace(/\.md$/, ""),
+                            path: path,
+                            type: item.type === "tree" ? "folder" : "file",
+                            children: [],
+                            download_url:
+                                item.type === "blob"
+                                    ? `https://raw.githubusercontent.com/${this.configManager.config.username}/${this.configManager.config.repo}/HEAD/${path}`
+                                    : null,
+                        };
+
+                        if (map[parentPath]) {
+                            map[parentPath].children.push(node);
+                        } else {
+                            // 兜底：如果找不到父级（可能父级被过滤了），放根部
+                            result.push(node);
+                        }
+
+                        if (item.type === "tree") {
+                            map[relativePath] = node;
+                        }
+                    });
+
+                    // 排序：文件夹在前，文件名在后
+                    const sortNodes = (nodes) => {
+                        nodes.sort((a, b) => {
+                            if (a.type !== b.type)
+                                return a.type === "folder" ? -1 : 1;
+                            return a.name.localeCompare(b.name);
+                        });
+                        nodes.forEach((n) => {
+                            if (n.children.length) sortNodes(n.children);
+                        });
+                    };
+                    sortNodes(result);
+
+                    return result;
+                }
+
+                async getRawContent(item) {
+                    const { username, repo } = this.configManager.config;
+                    const hasToken = !!this.configManager.config.token;
+
+                    // 如果有 Token (私有仓库)，必须通过 API 域名获取，否则会触发 CORS 错误
+                    if (hasToken) {
+                        const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${item.path}`;
+                        const res = await fetch(apiUrl, {
+                            headers: {
+                                ...this.headers,
+                                Accept: "application/vnd.github.v3.raw", // 关键：要求返回原始文本而非 JSON
+                            },
+                        });
+                        if (!res.ok) throw new Error(`API 错误: ${res.status}`);
+                        return await res.text();
+                    } else {
+                        // 公有仓库直接走 raw 域名，不带任何 Headers 避免跨域问题
+                        const res = await fetch(item.download_url);
+                        if (!res.ok)
+                            throw new Error(`文件获取失败: ${res.status}`);
+                        return await res.text();
+                    }
+                }
+            }
+
+            /**
+             * 界面管理模块
+             */
+            class UIManager {
+                constructor(config, data) {
+                    this.configManager = config;
+                    this.dataManager = data;
+                    this.searchMode = false;
+
+                    this.dom = {
+                        sidebar: document.getElementById("sidebar"),
+                        navTree: document.getElementById("navTree"),
+                        contentArea: document.getElementById("contentArea"),
+                        contentViewport:
+                            document.getElementById("contentViewport"),
+                        toolbarTitle: document.getElementById("toolbarTitle"),
+                        settingsModal: document.getElementById("settingsModal"),
+                        searchInput: document.getElementById("searchInput"),
+                        mobileOverlay: document.getElementById("mobileOverlay"),
+                        sidebarLogo: document.getElementById("sidebarLogo"),
+                        loadingBar: document.getElementById("loadingBar"),
+                    };
+
+                    this.init();
+                }
+
+                init() {
+                    // 初始化主题
+                    const savedTheme = localStorage.getItem("theme") || "light";
+                    document.documentElement.setAttribute(
+                        "data-theme",
+                        savedTheme,
+                    );
+
+                    // 1. 块级公式扩展 ($$ ... $$)
+                    const blockMath = {
+                        name: "blockMath",
+                        level: "block",
+                        start(src) {
+                            return src.indexOf("$$");
+                        },
+                        tokenizer(src, tokens) {
+                            const cap = /^\$\$([\s\S]+?)\$\$/.exec(src);
+                            if (cap) {
+                                return {
+                                    type: "blockMath",
+                                    raw: cap[0],
+                                    text: cap[1].trim(),
+                                };
+                            }
+                        },
+                        renderer(token) {
+                            return `<div class="katex-display-wrapper">${katex.renderToString(token.text, { displayMode: true, throwOnError: false })}</div>`;
+                        },
+                    };
+
+                    // 2. 行内公式扩展 ($ ... $)
+                    const inlineMath = {
+                        name: "inlineMath",
+                        level: "inline",
+                        start(src) {
+                            return src.indexOf("$");
+                        },
+                        tokenizer(src, tokens) {
+                            const cap = /^\$((?:[^\$]|\\\$)+?)\$/.exec(src);
+                            if (cap) {
+                                return {
+                                    type: "inlineMath",
+                                    raw: cap[0],
+                                    text: cap[1].trim(),
+                                };
+                            }
+                        },
+                        renderer(token) {
+                            return katex.renderToString(token.text, {
+                                displayMode: false,
+                                throwOnError: false,
+                            });
+                        },
+                    };
+
+                    marked.use({ extensions: [blockMath, inlineMath] });
+
+                    // 配置 marked 全局选项
+                    marked.setOptions({
+                        highlight: function (code, lang) {
+                            if (window.Prism && Prism.languages[lang]) {
+                                return Prism.highlight(
+                                    code,
+                                    Prism.languages[lang],
+                                    lang,
+                                );
+                            }
+                            return code;
+                        },
+                        breaks: true,
+                        gfm: true,
+                    });
+
+                    this.bindEvents();
+                    if (this.configManager.isValid()) {
+                        this.refreshData();
+                    } else {
+                        this.showSettings();
+                    }
+                }
+
+                bindEvents() {
+                    this.dom.sidebarLogo.onclick = () => this.showHome();
+
+                    document.getElementById("themeToggleBtn").onclick = () => {
+                        const current =
+                            document.documentElement.getAttribute("data-theme");
+                        const target = current === "dark" ? "light" : "dark";
+                        document.documentElement.setAttribute(
+                            "data-theme",
+                            target,
+                        );
+                        localStorage.setItem("theme", target);
+                    };
+
+                    document.getElementById("refreshBtn").onclick = () => {
+                        this.dataManager.treeData = null;
+                        this.refreshData();
+                    };
+                    document.getElementById("settingsBtn").onclick = () =>
+                        this.showSettings();
+                    document.getElementById("githubBtn").onclick = () => {
+                        window.open(this.configManager.getRepoUrl(), "_blank");
+                    };
+
+                    this.dom.searchInput.oninput = (e) =>
+                        this.handleSearch(e.target.value);
+
+                    const toggleSidebar = () => {
+                        if (window.innerWidth <= 1024) {
+                            this.dom.sidebar.classList.toggle("open");
+                            this.dom.mobileOverlay.classList.toggle("active");
+                        } else {
+                            this.dom.sidebar.classList.toggle("collapsed");
+                        }
+                    };
+                    document.getElementById("mobileMenuBtn").onclick =
+                        toggleSidebar;
+                    this.dom.mobileOverlay.onclick = toggleSidebar;
+
+                    // 配置面板自动填充 Token 逻辑
+                    const autoFillToken = () => {
+                        const u = document
+                            .getElementById("githubUsername")
+                            .value.trim();
+                        const r = document
+                            .getElementById("githubRepo")
+                            .value.trim();
+                        if (u && r) {
+                            const key = `${u}/${r}`.toLowerCase();
+                            const token = this.configManager.tokens[key] || "";
+                            document.getElementById("githubToken").value =
+                                token;
+                        }
+                    };
+                    document.getElementById("githubUsername").oninput =
+                        autoFillToken;
+                    document.getElementById("githubRepo").oninput =
+                        autoFillToken;
+
+                    document.getElementById("settingsSave").onclick = () =>
+                        this.saveSettings();
+                    document.getElementById("settingsCancel").onclick = () =>
+                        this.hideModal();
+
+                    window.onhashchange = () => this.handleRouting();
+
+                    window.addEventListener("resize", () => {
+                        if (window.innerWidth > 1024) {
+                            this.dom.sidebar.classList.remove("open");
+                            this.dom.mobileOverlay.classList.remove("active");
+                        }
+                    });
+
+                    document.getElementById("importUrlBtn").onclick = () => {
+                        const input = document.getElementById("importUrlInput");
+                        const urlStr = input.value.trim();
+                        if (!urlStr) {
+                            this.showToast("请输入 GitHub 仓库链接");
+                            return;
+                        }
+
+                        const urlCfg =
+                            this.configManager.autoDetectFromUrl(urlStr);
+                        if (urlCfg) {
+                            document.getElementById("githubUsername").value =
+                                urlCfg.username;
+                            document.getElementById("githubRepo").value =
+                                urlCfg.repo;
+                            document.getElementById("githubPath").value =
+                                urlCfg.path || "";
+                            // 导入后清空输入框
+                            input.value = "";
+                            this.showToast("解析成功：已自动填充配置");
+                        } else {
+                            this.showToast("无法识别该链接，请检查格式");
+                        }
+                    };
+
+                    document.addEventListener("keydown", (e) => {
+                        if (e.key === "Escape") {
+                            this.hideModal();
+                            this.dom.sidebar.classList.remove("open");
+                            this.dom.mobileOverlay.classList.remove("active");
+                        }
+                        if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+                            e.preventDefault();
+                            this.dom.searchInput.focus();
+                        }
+                    });
+                }
+
+                showToast(msg, duration = 3000) {
+                    const toast = document.getElementById("toast");
+                    toast.textContent = msg;
+                    toast.classList.add("show");
+                    clearTimeout(this.toastTimer);
+                    this.toastTimer = setTimeout(
+                        () => toast.classList.remove("show"),
+                        duration,
+                    );
+                }
+
+                showSettings() {
+                    const cfg = this.configManager.config;
+                    document.getElementById("githubUsername").value =
+                        cfg.username || "";
+                    document.getElementById("githubRepo").value =
+                        cfg.repo || "";
+                    document.getElementById("githubPath").value =
+                        cfg.path || "";
+                    document.getElementById("githubToken").value =
+                        cfg.token || "";
+                    this.dom.settingsModal.classList.add("active");
+                }
+
+                hideModal() {
+                    this.dom.settingsModal.classList.remove("active");
+                }
+
+                saveSettings() {
+                    const username = document
+                        .getElementById("githubUsername")
+                        .value.trim();
+                    const repo = document
+                        .getElementById("githubRepo")
+                        .value.trim();
+                    const path = document
+                        .getElementById("githubPath")
+                        .value.trim();
+                    const token = document
+                        .getElementById("githubToken")
+                        .value.trim();
+
+                    if (!username || !repo) {
+                        this.showToast("用户名和仓库名为必填项");
+                        return;
+                    }
+
+                    this.configManager.saveConfig({
+                        username,
+                        repo,
+                        path,
+                        token,
+                    });
+                    this.hideModal();
+
+                    // 核心修复：强制清空旧数据并重新拉取
+                    this.dataManager.treeData = null;
+
+                    // 更新 URL Hash（包含根目录路径）
+                    let newHash = `#/${username}/${repo}`;
+                    if (path) {
+                        const cleanPath = path.replace(/^\/+|\/+$/g, "");
+                        if (cleanPath) newHash += `/${cleanPath}`;
+                    }
+
+                    if (window.location.hash !== newHash) {
+                        window.location.hash = newHash;
+                    }
+                    this.refreshData();
+                }
+
+                async refreshData() {
+                    this.dom.navTree.innerHTML = `
+                        <div class="empty-state">
+                            <div class="loading-spinner" style="margin-bottom: 16px;"></div>
+                            <p style="font-family: var(--font-mono); letter-spacing: 0.5px;">INDEXING...</p>
+                        </div>
+                    `;
+                    try {
+                        const tree = await this.dataManager.getFullTree();
+                        this.renderTree(this.dom.navTree, tree);
+                        this.showToast("数据同步成功");
+                        // 数据加载完成后，根据 URL 路由到具体文件
+                        this.handleRouting();
+                    } catch (e) {
+                        let helpfulMessage = e.message;
+                        let showSettingsBtn = true;
+
+                        if (e.type === "NOT_FOUND_OR_PRIVATE") {
+                            helpfulMessage =
+                                "<b>找不到仓库</b><br>可能是拼写错误，或者是私有仓库（需在配置中设置 Token）";
+                        } else if (e.type === "AUTH_REQUIRED") {
+                            helpfulMessage =
+                                "<b>Token 验证失败</b><br>请检查配置中的 Token 是否正确";
+                        }
+
+                        this.dom.navTree.innerHTML = `
+                            <div class="empty-state">
+                                <div style="font-size: 24px; margin-bottom: 12px;">🔒</div>
+                                <p style="color: #ef4444;">${helpfulMessage}</p>
+                                ${showSettingsBtn ? '<button class="btn primary" onclick="ui.showSettings()" style="margin-top:16px; width: 100%;">前往配置</button>' : ""}
+                            </div>
+                        `;
+                    }
+                }
+
+                handleRouting() {
+                    let hash = window.location.hash.slice(1);
+                    const { username, repo, path } = this.configManager.config;
+
+                    // 如果 Hash 为空且已有选定仓库，自动补全 Hash 以保持 URL 状态（包含根目录路径）
+                    if (!hash && username && repo) {
+                        let targetHash = `#/${username}/${repo}`;
+                        if (path) {
+                            // 确保路径格式正确，去掉多余斜杠
+                            const cleanPath = path.replace(/^\/+|\/+$/g, "");
+                            if (cleanPath) targetHash += `/${cleanPath}`;
+                        }
+                        window.location.hash = targetHash;
+                        return;
+                    }
+
+                    if (!hash) {
+                        this.showHome(true);
+                        return;
+                    }
+
+                    try {
+                        hash = decodeURIComponent(hash);
+                    } catch (e) {
+                        console.error("Malformed URI", e);
+                    }
+
+                    if (!hash.startsWith("/")) {
+                        this.showHome(true);
+                        return;
+                    }
+
+                    const parts = hash.split("/").filter((p) => p);
+                    if (parts.length < 2) return;
+
+                    const hashUser = parts[0];
+                    const hashRepo = parts[1];
+                    const currentCfg = this.configManager.config;
+
+                    // 核心改进：检测是否切换了仓库
+                    if (
+                        hashUser !== currentCfg.username ||
+                        hashRepo !== currentCfg.repo
+                    ) {
+                        console.log(
+                            `切换仓库: ${currentCfg.username}/${currentCfg.repo} -> ${hashUser}/${hashRepo}`,
+                        );
+                        // 更新当前配置
+                        this.configManager.config.username = hashUser;
+                        this.configManager.config.repo = hashRepo;
+                        this.configManager.config.path = ""; // 切换仓库时默认清空子路径
+
+                        // 自动加载该仓库对应的 Token
+                        this.configManager.loadTokenForRepo();
+
+                        this.dataManager.treeData = null;
+                        this.refreshData();
+                        return;
+                    }
+
+                    if (parts.length <= 2) {
+                        this.showHome(true);
+                        return;
+                    }
+
+                    const filePath = parts.slice(2).join("/");
+
+                    // 如果路径正好等于配置的根路径，视为首页
+                    const cleanConfigPath = path
+                        ? path.replace(/^\/+|\/+$/g, "")
+                        : "";
+                    if (filePath === cleanConfigPath) {
+                        this.showHome(true);
+                        return;
+                    }
+
+                    // 在树中寻找该文件
+                    const findFile = (nodes) => {
+                        for (const node of nodes) {
+                            if (node.path === filePath) return node;
+                            if (node.children && node.children.length) {
+                                const found = findFile(node.children);
+                                if (found) return found;
+                            }
+                        }
+                        return null;
+                    };
+
+                    const tree = this.dataManager.treeData || [];
+                    const targetNode = findFile(tree);
+                    if (targetNode) {
+                        if (targetNode.type === "file") {
+                            this.setActiveFile(targetNode, true);
+                        } else {
+                            // 如果是文件夹，展开并显示状态
+                            this.revealInTree(targetNode.path);
+                            this.dom.toolbarTitle.textContent = targetNode.name;
+                            this.dom.contentArea.innerHTML = `
+                                <div class="empty-state">
+                                    <div class="logo" style="font-size: 24px; margin-bottom: 16px; opacity: 0.5;">FOLDER</div>
+                                    <p>正在浏览文件夹: <b>${targetNode.name}</b></p>
+                                    <p style="font-size: 13px; margin-top: 8px; color: var(--text-secondary);">从左侧目录选择文件开始阅读</p>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        // 如果在当前树中找不到，可能是还没加载完或者路径不对
+                        console.warn("未在目录树中找到路径:", filePath);
+                    }
+                }
+
+                showHome(isSilent = false) {
+                    if (!isSilent) {
+                        const { username, repo, path } =
+                            this.configManager.config;
+                        if (username && repo) {
+                            let targetHash = `#/${username}/${repo}`;
+                            if (path) {
+                                const cleanPath = path.replace(
+                                    /^\/+|^\/+$/g,
+                                    "",
+                                );
+                                if (cleanPath) targetHash += `/${cleanPath}`;
+                            }
+                            if (window.location.hash !== targetHash) {
+                                window.location.hash = targetHash;
+                                return;
+                            }
+                        } else {
+                            const url = new URL(window.location.href);
+                            history.pushState(
+                                null,
+                                "",
+                                url.pathname + url.search,
+                            );
+                        }
+                    }
+
+                    this.dom.searchInput.value = "";
+                    this.handleSearch("");
+
+                    this.dom.toolbarTitle.textContent = "选择一个笔记";
+                    document
+                        .querySelectorAll(".nav-item-content")
+                        .forEach((el) => {
+                            el.classList.remove("active");
+                        });
+
+                    this.dom.contentArea.innerHTML = `
+                        <div class="empty-state">
+                            <div
+                                class="logo"
+                                style="
+                                    font-size: 24px;
+                                    margin-bottom: 16px;
+                                    opacity: 0.5;
+                                "
+                            >
+                                NOTES
+                            </div>
+                            <p>从左侧目录选择一个 Markdown 文件开始阅读</p>
+                        </div>
+                    `;
+                }
+
+                revealInTree(targetPath) {
+                    // 1. 清除所有高亮
+                    document
+                        .querySelectorAll(".nav-item-content")
+                        .forEach((el) => el.classList.remove("active"));
+
+                    const parts = targetPath.split("/");
+                    let currentPath = "";
+
+                    // 2. 逐层寻找并展开文件夹
+                    for (let i = 0; i < parts.length; i++) {
+                        currentPath = currentPath
+                            ? `${currentPath}/${parts[i]}`
+                            : parts[i];
+                        const el = document.querySelector(
+                            `.nav-item-content[data-path="${currentPath}"]`,
+                        );
+
+                        if (el) {
+                            if (i < parts.length - 1) {
+                                // 是中间文件夹路径
+                                const childrenDiv =
+                                    el.parentElement.querySelector(
+                                        ".nav-children",
+                                    );
+                                if (
+                                    childrenDiv &&
+                                    !childrenDiv.classList.contains("show")
+                                ) {
+                                    // 仅在未展开时模拟点击（触发 renderTree 和样式切换）
+                                    el.click();
+                                }
+                            } else {
+                                // 已经到达目标文件
+                                el.classList.add("active");
+                                // 确保在视口可见
+                                el.scrollIntoView({
+                                    block: "nearest",
+                                    behavior: "smooth",
+                                });
+                            }
+                        }
+                    }
+                }
+
+                renderTree(container, items, level = 0) {
+                    if (level === 0) container.innerHTML = "";
+
+                    items.forEach((item) => {
+                        const div = document.createElement("div");
+                        div.className = "nav-item";
+
+                        const isFolder = item.type === "folder";
+                        div.innerHTML = `
+                            <div class="nav-item-content" data-path="${item.path}" style="padding-left: ${16 + level * 12}px">
+                                <span class="nav-toggle">${isFolder ? "▶" : "•"}</span>
+                                <span class="nav-text" title="${item.name}">${item.name}</span>
+                            </div>
+                            ${isFolder ? '<div class="nav-children"></div>' : ""}
+                        `;
+
+                        const content = div.querySelector(".nav-item-content");
+                        if (isFolder) {
+                            const childrenDiv =
+                                div.querySelector(".nav-children");
+                            const toggle = div.querySelector(".nav-toggle");
+
+                            content.onclick = (e) => {
+                                e.stopPropagation();
+                                const isExpanded =
+                                    childrenDiv.classList.contains("show");
+                                if (isExpanded) {
+                                    childrenDiv.classList.remove("show");
+                                    toggle.classList.remove("expanded");
+                                } else {
+                                    if (
+                                        childrenDiv.innerHTML === "" &&
+                                        item.children.length > 0
+                                    ) {
+                                        this.renderTree(
+                                            childrenDiv,
+                                            item.children,
+                                            level + 1,
+                                        );
+                                    }
+                                    childrenDiv.classList.add("show");
+                                    toggle.classList.add("expanded");
+
+                                    // 更新 URL Hash 以反映当前选定的文件夹
+                                    const { username, repo } =
+                                        this.configManager.config;
+                                    const newHash = `#/${username}/${repo}/${item.path}`;
+                                    if (window.location.hash !== newHash) {
+                                        history.pushState(null, "", newHash);
+                                    }
+                                }
+                            };
+                        } else {
+                            content.onclick = (e) => {
+                                e.stopPropagation();
+                                this.setActiveFile(item);
+                            };
+                        }
+                        container.appendChild(div);
+                    });
+                }
+
+                async setActiveFile(item, isSilent = false) {
+                    const { username, repo } = this.configManager.config;
+
+                    // 1. 更新 URL Hash
+                    if (!isSilent) {
+                        const newHash = `#/${username}/${repo}/${item.path}`;
+                        if (window.location.hash !== newHash) {
+                            history.pushState(null, "", newHash);
+                        }
+                    }
+
+                    // 2. UI 状态更新：面包屑
+                    this.revealInTree(item.path);
+                    const pathParts = item.path.split("/");
+                    const breadcrumbHtml = pathParts
+                        .map((part, index) => {
+                            if (index === pathParts.length - 1) {
+                                return `<span>${part.replace(/\.md$/, "")}</span>`;
+                            }
+                            return `${part} / `;
+                        })
+                        .join("");
+                    this.dom.toolbarTitle.innerHTML = breadcrumbHtml;
+
+                    if (window.innerWidth <= 1024) {
+                        this.dom.sidebar.classList.remove("open");
+                        this.dom.mobileOverlay.classList.remove("active");
+                    }
+
+                    // 3. 平滑加载：显示进度条，不清空内容
+                    this.dom.loadingBar.classList.remove("no-transition");
+                    this.dom.loadingBar.style.width = "30%";
+
+                    try {
+                        const raw = await this.dataManager.getRawContent(item);
+                        this.dom.loadingBar.style.width = "70%";
+
+                        // 渲染并替换内容
+                        this.renderMarkdown(raw);
+
+                        this.dom.contentViewport.scrollTop = 0;
+                        this.dom.loadingBar.style.width = "100%";
+                    } catch (e) {
+                        this.dom.contentArea.innerHTML = `<div class="empty-state"><p style="color:#ef4444">加载内容失败: ${e.message}</p></div>`;
+                        this.dom.loadingBar.style.width = "0";
+                    } finally {
+                        setTimeout(() => {
+                            this.dom.loadingBar.classList.add("no-transition");
+                            this.dom.loadingBar.style.width = "0";
+                            // 强制重绘
+                            void this.dom.loadingBar.offsetWidth;
+                            this.dom.loadingBar.classList.remove(
+                                "no-transition",
+                            );
+                        }, 450); // 略长于 transition 时间
+                    }
+                }
+
+                renderMarkdown(md) {
+                    this.dom.contentArea.innerHTML = `<div class="markdown-body">${marked.parse(md)}</div>`;
+
+                    if (window.Prism) {
+                        this.dom.contentArea
+                            .querySelectorAll("pre code")
+                            .forEach((block) => {
+                                Prism.highlightElement(block);
+                            });
+                    }
+                }
+
+                handleSearch(query) {
+                    query = query.toLowerCase().trim();
+                    if (!query) {
+                        this.searchMode = false;
+                        if (this.dataManager.treeData) {
+                            this.renderTree(
+                                this.dom.navTree,
+                                this.dataManager.treeData,
+                            );
+                        }
+                        return;
+                    }
+
+                    this.searchMode = true;
+                    const results = [];
+                    const flatten = (nodes) => {
+                        nodes.forEach((n) => {
+                            if (
+                                n.type === "file" &&
+                                n.name.toLowerCase().includes(query)
+                            ) {
+                                results.push(n);
+                            }
+                            if (n.children.length) flatten(n.children);
+                        });
+                    };
+                    flatten(this.dataManager.treeData || []);
+
+                    this.renderSearchResults(results);
+                }
+
+                renderSearchResults(results) {
+                    this.dom.navTree.innerHTML = results.length
+                        ? ""
+                        : '<div class="empty-state"><p>未找到相关笔记</p></div>';
+                    results.forEach((item) => {
+                        const div = document.createElement("div");
+                        div.className = "nav-item";
+                        const dirPath = item.path
+                            .split("/")
+                            .slice(0, -1)
+                            .join("/");
+
+                        div.innerHTML = `
+                            <div class="nav-item-content" data-path="${item.path}" style="padding: 10px 16px; flex-direction: column; align-items: flex-start; gap: 2px;">
+                                <div class="nav-text" style="color: var(--text-primary); font-weight: 500;">${item.name}</div>
+                                <div style="font-size: 11px; color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+                                    ${dirPath || "/"}
+                                </div>
+                            </div>
+                        `;
+                        div.onclick = () => this.setActiveFile(item);
+                        this.dom.navTree.appendChild(div);
+                    });
+                }
+            }
+
+            // 启动应用
+            const config = new ConfigManager();
+            const data = new DataManager(config);
+            const ui = new UIManager(config, data);
+
+            // 全局挂载以便调试
+            window.ui = ui;
+        </script>
+    </body>
+</html>
