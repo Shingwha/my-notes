@@ -5,6 +5,24 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>My Notes</title>
 
+        <!-- 立即应用主题，防止闪烁 -->
+        <script>
+            (function () {
+                try {
+                    const savedTheme = localStorage.getItem("theme") || "light";
+                    document.documentElement.setAttribute(
+                        "data-theme",
+                        savedTheme,
+                    );
+                } catch (e) {
+                    document.documentElement.setAttribute(
+                        "data-theme",
+                        "light",
+                    );
+                }
+            })();
+        </script>
+
         <!-- 外部依赖 -->
         <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
         <link
