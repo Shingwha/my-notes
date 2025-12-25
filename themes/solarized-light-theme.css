@@ -1,0 +1,39 @@
+:root {
+    --bg-primary: #fdf6e3;
+    --bg-sidebar: #eee8d5;
+    --bg-paper: #fdf6e3;
+    --bg-tertiary: #eee8d5;
+    --text-primary: #657b83;
+    --text-secondary: #586e75;
+    --text-tertiary: #93a1a1;
+    --border-color: #dce1e1;
+    --accent-color: #268bd2;
+    --hover-bg: #eee8d5;
+    --active-bg: #e4ddc3;
+    --active-border: #cb4b16;
+    --shadow-color: rgba(0, 0, 0, 0.05);
+
+    --code-bg: #eee8d5;
+    --code-text: #657b83;
+    --code-border: #dce1e1;
+    --token-comment: #93a1a1;
+    --token-keyword: #859900;
+    --token-string: #2aa198;
+    --token-function: #268bd2;
+    --token-operator: #d33682;
+    --token-class: #b58900;
+}
+
+body {
+    background-image: none !important;
+    background-color: var(--bg-primary);
+}
+
+.sidebar, .main-content, .modal {
+    border-width: 1px !important;
+    box-shadow: none !important;
+}
+
+.markdown-body a {
+    border-bottom: 1px dashed var(--accent-color);
+}
