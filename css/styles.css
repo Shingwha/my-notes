@@ -801,15 +801,9 @@ body {
     height: 16px;
 }
 
-/* Mobile Menu Button */
+/* Mobile Menu Button - always visible for sidebar toggle */
 .mobile-menu-btn {
-    display: none;
-}
-
-@media (max-width: 1024px) {
-    .mobile-menu-btn {
-        display: flex;
-    }
+    display: flex;
 }
 
 /* --- Settings Modal --- */
