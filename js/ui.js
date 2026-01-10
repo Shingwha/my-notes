@@ -27,8 +27,12 @@ export class UIManager {
 
     init() {
         // 初始化主题
-        const savedTheme = localStorage.getItem("theme") || "light";
-        document.documentElement.setAttribute("data-theme", savedTheme);
+        const themeConfig = this.configManager.getThemeConfig();
+        const color = themeConfig.color || 'blue';
+        const themeValue = color === 'blue'
+            ? themeConfig.mode
+            : `${themeConfig.mode}-${color}`;
+        document.documentElement.setAttribute("data-theme", themeValue);
 
         // 1. 块级公式扩展 ($$ ... $$)
         const blockMath = {
@@ -103,11 +107,7 @@ export class UIManager {
         this.dom.sidebarLogo.onclick = () => this.showHome();
 
         document.getElementById("themeToggleBtn").onclick = () => {
-            const current =
-                document.documentElement.getAttribute("data-theme");
-            const target = current === "dark" ? "light" : "dark";
-            document.documentElement.setAttribute("data-theme", target);
-            localStorage.setItem("theme", target);
+            this.toggleThemePanel();
         };
 
         document.getElementById("refreshBtn").onclick = () => {
@@ -676,5 +676,123 @@ export class UIManager {
                 this.setActiveFile(item);
             this.dom.navTree.appendChild(div);
         });
+    }
+
+    // ========== 主题面板相关方法 ==========
+
+    initThemePanelEvents() {
+        const themePanel = document.getElementById("themePanel");
+        const themeOverlay = document.getElementById("themePanelOverlay");
+        const closeBtn = document.getElementById("themeCloseBtn");
+
+        // 关闭面板
+        const closePanel = () => {
+            themePanel.classList.remove("active");
+            themeOverlay.classList.remove("active");
+        };
+
+        closeBtn.onclick = closePanel;
+        themeOverlay.onclick = closePanel;
+
+        // ESC 键关闭
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && themePanel.classList.contains('active')) {
+                closePanel();
+            }
+        });
+
+        // 模式切换
+        const modeButtons = document.querySelectorAll('.theme-mode-btn');
+        modeButtons.forEach(btn => {
+            btn.onclick = () => {
+                const mode = btn.dataset.mode;
+                this.switchThemeMode(mode);
+            };
+        });
+
+        // 颜色选择
+        const colorButtons = document.querySelectorAll('.theme-color-btn');
+        colorButtons.forEach(btn => {
+            btn.onclick = () => {
+                const color = btn.dataset.color;
+                this.switchThemeColor(color);
+            };
+        });
+    }
+
+    toggleThemePanel() {
+        const themePanel = document.getElementById("themePanel");
+        const themeOverlay = document.getElementById("themePanelOverlay");
+
+        // 首次打开时初始化事件
+        if (!this._themePanelInitialized) {
+            this.initThemePanelEvents();
+            this._themePanelInitialized = true;
+        }
+
+        themePanel.classList.toggle("active");
+        themeOverlay.classList.toggle("active");
+
+        // 打开时更新按钮状态
+        if (themePanel.classList.contains('active')) {
+            this.updateThemePanelUI();
+        }
+    }
+
+    updateThemePanelUI() {
+        const config = this.configManager.getThemeConfig();
+
+        // 更新模式按钮状态
+        document.querySelectorAll('.theme-mode-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.mode === config.mode);
+        });
+
+        // 更新颜色按钮状态
+        document.querySelectorAll('.theme-color-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.color === config.color);
+        });
+
+        // 更新颜色预览（根据当前模式调整）
+        document.querySelectorAll('.theme-color-btn').forEach(btn => {
+            const color = btn.dataset.color;
+            const accentColor = this.getAccentColor(config.mode, color);
+            btn.style.setProperty('--preview', accentColor);
+        });
+    }
+
+    switchThemeMode(mode) {
+        const config = this.configManager.getThemeConfig();
+        this.configManager.setTheme(mode, config.color);
+        this.updateThemePanelUI();
+    }
+
+    switchThemeColor(color) {
+        const config = this.configManager.getThemeConfig();
+        this.configManager.setTheme(config.mode, color);
+        this.updateThemePanelUI();
+    }
+
+    getAccentColor(mode, color) {
+        const colors = {
+            light: {
+                blue: '#002fa7',
+                green: '#059669',
+                purple: '#7c3aed',
+                orange: '#ea580c',
+                red: '#dc2626',
+                pink: '#db2777',
+                rose: '#e11d48'
+            },
+            dark: {
+                blue: '#60a5fa',
+                green: '#34d399',
+                purple: '#a78bfa',
+                orange: '#fb923c',
+                red: '#f87171',
+                pink: '#f472b6',
+                rose: '#fb7185'
+            }
+        };
+        return colors[mode][color];
     }
 }

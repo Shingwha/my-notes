@@ -1,23 +1,38 @@
 /* 1. 引入更有格调的字体 (Google Fonts) */
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap");
 
+/* ========================================
+   主题系统 - 5 层 CSS 变量结构
+   ======================================== */
+
+/* 第一层: 基础变量（颜色无关） */
 :root {
-    /* Light Mode (Magazine Editorial) */
+    --font-serif: "IBM Plex Serif", "Songti SC", serif;
+    --font-sans: "Inter", -apple-system, sans-serif;
+    --font-mono: "IBM Plex Mono", monospace;
+}
+
+/* 第二层: Light 模式基础变量（不含 accent-color） */
+:root,
+[data-theme^="light-"] {
+    /* 背景色系 */
     --bg-primary: #f2f0ed;
     --bg-sidebar: #e8e6e3;
     --bg-paper: #ffffff;
     --bg-tertiary: #ffffff;
+
+    /* 文字色系 */
     --text-primary: #1a1a1a;
     --text-secondary: #585858;
     --text-tertiary: #8a8a8a;
+
+    /* 交互色系 */
     --border-color: #1a1a1a;
-    --accent-color: #002fa7;
     --hover-bg: rgba(0, 0, 0, 0.05);
     --active-bg: rgba(0, 0, 0, 0.08);
-    --active-border: var(--accent-color);
     --shadow-color: rgba(0, 0, 0, 0.1);
 
-    /* 代码块专用变量 (亮色模式 - 类似 Github Light) */
+    /* 代码块专用 (GitHub Light 风格) */
     --code-bg: #f6f8fa;
     --code-text: #24292e;
     --code-border: #d0d7de;
@@ -27,29 +42,29 @@
     --token-function: #6f42c1;
     --token-operator: #005cc5;
     --token-class: #22863a;
-
-    --font-serif: "IBM Plex Serif", "Songti SC", serif;
-    --font-sans: "Inter", -apple-system, sans-serif;
-    --font-mono: "IBM Plex Mono", monospace;
 }
 
+/* 第三层: Dark 模式基础变量 */
+[data-theme^="dark-"],
 [data-theme="dark"] {
-    /* Dark Mode (High-Contrast Tech) */
+    /* 背景色系 */
     --bg-primary: #0e0e10;
     --bg-sidebar: #161618;
     --bg-paper: #1c1c1f;
     --bg-tertiary: #27272a;
+
+    /* 文字色系 */
     --text-primary: #e4e4e7;
     --text-secondary: #a1a1aa;
     --text-tertiary: #52525b;
+
+    /* 交互色系 */
     --border-color: #3f3f46;
-    --accent-color: #60a5fa;
     --hover-bg: rgba(255, 255, 255, 0.05);
     --active-bg: rgba(255, 255, 255, 0.08);
-    --active-border: var(--accent-color);
     --shadow-color: rgba(0, 0, 0, 0.4);
 
-    /* 代码块专用变量 (深色模式 - 类似 Github Dark) */
+    /* 代码块专用 (GitHub Dark 风格) */
     --code-bg: #0d1117;
     --code-text: #c9d1d9;
     --code-border: #30363d;
@@ -59,6 +74,61 @@
     --token-function: #d2a8ff;
     --token-operator: #79c0ff;
     --token-class: #7ee787;
+}
+
+/* 第四层: 颜色主题（仅定义 accent-color） */
+
+/* Light 颜色主题 */
+[data-theme="light"],
+[data-theme="light-blue"] {
+    --accent-color: #002fa7;
+}
+[data-theme="light-green"] {
+    --accent-color: #059669;
+}
+[data-theme="light-purple"] {
+    --accent-color: #7c3aed;
+}
+[data-theme="light-orange"] {
+    --accent-color: #ea580c;
+}
+[data-theme="light-red"] {
+    --accent-color: #dc2626;
+}
+[data-theme="light-pink"] {
+    --accent-color: #db2777;
+}
+[data-theme="light-rose"] {
+    --accent-color: #e11d48;
+}
+
+/* Dark 颜色主题 */
+[data-theme="dark"],
+[data-theme="dark-blue"] {
+    --accent-color: #60a5fa;
+}
+[data-theme="dark-green"] {
+    --accent-color: #34d399;
+}
+[data-theme="dark-purple"] {
+    --accent-color: #a78bfa;
+}
+[data-theme="dark-orange"] {
+    --accent-color: #fb923c;
+}
+[data-theme="dark-red"] {
+    --accent-color: #f87171;
+}
+[data-theme="dark-pink"] {
+    --accent-color: #f472b6;
+}
+[data-theme="dark-rose"] {
+    --accent-color: #fb7185;
+}
+
+/* 第五层: 依赖 accent-color 的变量 */
+:root {
+    --active-border: var(--accent-color);
 }
 
 * {
@@ -500,10 +570,12 @@ body {
 }
 
 /* 代码高亮在亮色模式下的对比度增强 */
-[data-theme="light"] .token.keyword {
+[data-theme="light"] .token.keyword,
+[data-theme^="light-"] .token.keyword {
     color: #d73a49 !important;
 }
-[data-theme="light"] .token.function {
+[data-theme="light"] .token.function,
+[data-theme^="light-"] .token.function {
     color: #6f42c1 !important;
 }
 
@@ -1033,5 +1105,216 @@ body {
 
     .quick-import-row .btn {
         width: 100%;
+    }
+}
+
+/* ========================================
+   主题面板样式
+   ======================================== */
+
+/* 主题面板遮罩层 */
+.theme-panel-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s;
+    z-index: 1999;
+}
+
+.theme-panel-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 主题面板 */
+.theme-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    background: var(--bg-paper);
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    width: 320px;
+    max-width: 90vw;
+    box-shadow: 4px 4px 0px var(--shadow-color);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 2000;
+}
+
+.theme-panel.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* 主题面板头部 */
+.theme-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.theme-panel-header span {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.theme-close-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+}
+
+.theme-close-btn:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+/* 主题面板分区 */
+.theme-section {
+    margin-bottom: 20px;
+}
+
+.theme-section:last-child {
+    margin-bottom: 0;
+}
+
+.theme-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+/* 模式切换按钮 */
+.theme-mode-toggles {
+    display: flex;
+    gap: 8px;
+}
+
+.theme-mode-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1.5px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+}
+
+.theme-mode-btn:hover {
+    background: var(--hover-bg);
+}
+
+.theme-mode-btn.active {
+    background: var(--accent-color);
+    color: #fff;
+    border-color: var(--accent-color);
+}
+
+.theme-mode-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* 颜色网格 */
+.theme-color-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.theme-color-btn {
+    aspect-ratio: 1;
+    border: 2px solid transparent;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.2s;
+    padding: 0;
+}
+
+.theme-color-btn::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    background: var(--preview);
+    border-radius: 4px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.theme-color-btn:hover::before {
+    opacity: 1;
+}
+
+.theme-color-btn.active {
+    border-color: var(--border-color);
+    transform: scale(1.05);
+}
+
+.theme-color-btn.active::after {
+    content: '✓';
+    position: absolute;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    z-index: 1;
+}
+
+.color-name {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    display: none;
+}
+
+.theme-color-btn:hover .color-name {
+    display: block;
+}
+
+/* 移动端适配 */
+@media (max-width: 540px) {
+    .theme-panel {
+        width: calc(100vw - 32px);
+        max-width: 320px;
+    }
+
+    .theme-color-grid {
+        grid-template-columns: repeat(4, 1fr);
     }
 }

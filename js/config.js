@@ -7,6 +7,10 @@ export class ConfigManager {
         this.tokens = this.loadTokens();
         this.config = this.loadConfig();
 
+        // 主题配置
+        this.themeConfig = { mode: 'light', color: 'blue' };
+        this.loadThemeConfig();
+
         // 优先级：URL 参数 > Hash 路由 > 域名检测 > 本地存储
         const urlCfg = this.autoDetectFromUrl();
         if (urlCfg) {
@@ -14,6 +18,28 @@ export class ConfigManager {
             // 切换到 URL 指定的仓库时，加载该仓库对应的 Token
             this.loadTokenForRepo();
         }
+    }
+
+    loadThemeConfig() {
+        const saved = localStorage.getItem("theme") || "light";
+        if (saved.includes('-')) {
+            const [mode, color] = saved.split('-');
+            this.themeConfig = { mode, color };
+        } else {
+            // 向后兼容
+            this.themeConfig = { mode: saved, color: 'blue' };
+        }
+    }
+
+    getThemeConfig() {
+        return this.themeConfig;
+    }
+
+    setTheme(mode, color) {
+        this.themeConfig = { mode, color };
+        const themeValue = color === 'blue' ? mode : `${mode}-${color}`;
+        localStorage.setItem("theme", themeValue);
+        document.documentElement.setAttribute("data-theme", themeValue);
     }
 
     loadTokens() {
