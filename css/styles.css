@@ -427,8 +427,8 @@ body {
     color: var(--text-primary);
     font-weight: 700;
     line-height: 1.25;
-    margin-top: 1.6em;
-    margin-bottom: 0.8em;
+    margin-top: 1.4em;
+    margin-bottom: 0.6em;
     letter-spacing: -0.02em;
 }
 
@@ -468,11 +468,12 @@ body {
 
 .markdown-body a:hover {
     border-bottom-color: var(--accent-color);
+    opacity: 0.8;
 }
 
 .markdown-body blockquote {
     margin: 1.2em 0;
-    padding: 0.6em 1.2em;
+    padding: 1em 1.4em;
     color: var(--text-secondary);
     border-left: 4px solid var(--accent-color);
     background: var(--hover-bg);
@@ -598,10 +599,10 @@ body {
 }
 
 .markdown-body hr {
-    height: 2px;
+    height: 1px;
     background: var(--border-color);
     border: none;
-    margin: 3em 0;
+    margin: 2em 0;
 }
 
 .markdown-body img {
