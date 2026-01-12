@@ -166,4 +166,41 @@ export class DataManager {
       return await res.text();
     }
   }
+
+  /**
+   * 获取图片内容（返回 Blob）
+   * @param {string} imagePath - 图片相对于仓库根目录的路径
+   * @returns {Promise<Blob>} 图片数据
+   */
+  async getImageContent(imagePath) {
+    const { username, repo } = this.configManager.config;
+    const hasToken = !!this.configManager.config.token;
+
+    if (hasToken) {
+      // 私有仓库：通过 GitHub API 获取
+      const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${imagePath}`;
+      const res = await fetch(apiUrl, {
+        headers: {
+          ...this.headers,
+          Accept: "application/vnd.github.v3.raw", // 返回原始二进制
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`图片加载失败 (${res.status}): ${imagePath}`);
+      }
+
+      return await res.blob();
+    } else {
+      // 公有仓库：从 raw.githubusercontent.com 获取
+      const rawUrl = `https://raw.githubusercontent.com/${username}/${repo}/HEAD/${imagePath}`;
+      const res = await fetch(rawUrl);
+
+      if (!res.ok) {
+        throw new Error(`图片加载失败 (${res.status}): ${imagePath}`);
+      }
+
+      return await res.blob();
+    }
+  }
 }

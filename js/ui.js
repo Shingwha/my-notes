@@ -3,11 +3,14 @@
  * 负责 UI 渲染、事件绑定和用户交互
  */
 export class UIManager {
-    constructor(configManager, dataManager) {
+    constructor(configManager, dataManager, imageCache = null) {
         this.configManager = configManager;
         this.dataManager = dataManager;
+        this.imageCache = imageCache;
         this.searchMode = false;
         this.toastTimer = null;
+        // Blob URL 内存管理
+        this.blobUrls = new Set();
 
         this.dom = {
             sidebar: document.getElementById("sidebar"),
@@ -600,7 +603,7 @@ export class UIManager {
             this.dom.loadingBar.style.width = "70%";
 
             // 渲染并替换内容
-            this.renderMarkdown(raw);
+            this.renderMarkdown(raw, item.path);
 
             this.dom.contentViewport.scrollTop = 0;
             this.dom.loadingBar.style.width = "100%";
@@ -618,7 +621,7 @@ export class UIManager {
         }
     }
 
-    renderMarkdown(md) {
+    renderMarkdown(md, filePath) {
         this.dom.contentArea.innerHTML = `<div class="markdown-body">${marked.parse(md)}</div>`;
 
         if (window.Prism) {
@@ -628,6 +631,144 @@ export class UIManager {
                     Prism.highlightElement(block);
                 });
         }
+
+        // 处理图片加载
+        if (this.imageCache) {
+            this.loadImages(filePath);
+        }
+    }
+
+    /**
+     * 处理 Markdown 中的所有图片
+     * @param {string} mdContentPath - 当前 Markdown 文件的路径
+     */
+    async loadImages(mdContentPath) {
+        const images = this.dom.contentArea.querySelectorAll('img');
+
+        // 使用 Promise.allSettled 并发加载多张图片
+        const promises = Array.from(images).map(img =>
+            this.loadSingleImage(img, mdContentPath)
+        );
+
+        await Promise.allSettled(promises);
+    }
+
+    /**
+     * 加载单张图片（带缓存和错误处理）
+     * @param {HTMLImageElement} img - img 元素
+     * @param {string} mdContentPath - Markdown 文件路径
+     */
+    async loadSingleImage(img, mdContentPath) {
+        const { username, repo, token } = this.configManager.config;
+        const originalSrc = img.src;
+        let imagePath = null;
+
+        // 1. 判断 URL 类型
+        if (originalSrc.startsWith('http://') || originalSrc.startsWith('https://')) {
+            // 外部完整 URL，检查是否为 GitHub 图片
+            if (originalSrc.includes('raw.githubusercontent.com')) {
+                // 提取图片路径
+                const match = originalSrc.match(/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\/(.+)/);
+                if (match) {
+                    imagePath = match[1];
+                }
+            } else {
+                // 非 GitHub 图片，保持原样
+                return;
+            }
+        } else if (originalSrc.startsWith('data:')) {
+            // Base64 内嵌图片，保持原样
+            return;
+        } else {
+            // 相对路径，转换为完整路径
+            const mdDir = mdContentPath.split('/').slice(0, -1).join('/');
+            imagePath = mdDir ? `${mdDir}/${originalSrc}` : originalSrc;
+        }
+
+        if (!imagePath) {
+            // 无法解析的路径，保持原样
+            return;
+        }
+
+        // 2. 显示加载状态
+        img.style.opacity = '0.5';
+        img.alt = '加载中...';
+
+        try {
+            // 3. 先查缓存
+            const cacheKey = this._getCacheKey(imagePath);
+            const cached = await this.imageCache.get(cacheKey);
+
+            if (cached) {
+                // 缓存命中
+                const blobUrl = URL.createObjectURL(cached);
+                this._trackBlobUrl(blobUrl);
+                img.src = blobUrl;
+                img.style.opacity = '1';
+                img.alt = imagePath.split('/').pop();
+                return;
+            }
+
+            // 4. 缓存未命中，加载数据
+            const blob = await this.dataManager.getImageContent(imagePath);
+
+            // 5. 存入缓存
+            await this.imageCache.set(cacheKey, blob);
+
+            // 6. 更新图片
+            const blobUrl = URL.createObjectURL(blob);
+            this._trackBlobUrl(blobUrl);
+            img.src = blobUrl;
+            img.style.opacity = '1';
+            img.alt = imagePath.split('/').pop();
+
+        } catch (error) {
+            // 加载失败处理
+            img.alt = `图片加载失败\n${imagePath}`;
+            img.style.opacity = '0.3';
+            img.style.border = '1px dashed var(--border-color)';
+            img.style.padding = '8px';
+            img.style.minHeight = '100px';
+            img.style.background = 'var(--bg-secondary)';
+            console.error('[ImageLoader]', imagePath, error.message);
+        }
+    }
+
+    /**
+     * 生成缓存键
+     * @private
+     * @param {string} imagePath - 图片路径
+     * @returns {string} 缓存键
+     */
+    _getCacheKey(imagePath) {
+        const { username, repo } = this.configManager.config;
+        return `${username}/${repo}/${imagePath}`;
+    }
+
+    /**
+     * 跟踪 Blob URL 用于内存管理
+     * @private
+     * @param {string} blobUrl - Blob URL
+     */
+    _trackBlobUrl(blobUrl) {
+        this.blobUrls.add(blobUrl);
+
+        // 限制内存中的 Blob URL 数量，避免内存泄漏
+        if (this.blobUrls.size > 50) {
+            const urlsToRevoke = Array.from(this.blobUrls).slice(0, 20);
+            urlsToRevoke.forEach(url => {
+                URL.revokeObjectURL(url);
+                this.blobUrls.delete(url);
+            });
+        }
+    }
+
+    /**
+     * 清理所有 Blob URL（页面卸载时调用）
+     */
+    cleanupBlobUrls() {
+        this.blobUrls.forEach(url => URL.revokeObjectURL(url));
+        this.blobUrls.clear();
     }
 
     handleSearch(query) {

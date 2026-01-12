@@ -609,6 +609,28 @@ body {
     border-radius: 0;
     border: 1.5px solid var(--border-color);
     margin: 2em 0;
+    transition: opacity 0.3s, filter 0.3s;
+}
+
+/* 图片加载中状态 */
+.markdown-body img[alt*="加载中"] {
+    filter: blur(2px);
+}
+
+/* 图片加载失败状态 */
+.markdown-body img[alt*="加载失败"] {
+    display: inline-block;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border: 1px dashed var(--border-color);
+    border-radius: 4px;
+    min-width: 200px;
+    min-height: 100px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+    white-space: pre-wrap;
+    object-fit: contain;
 }
 
 /* KaTeX 样式 */
