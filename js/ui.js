@@ -225,6 +225,45 @@ export class UIManager {
                 this.dom.searchInput.focus();
             }
         });
+
+        // 面包屑链接点击处理
+        this.dom.toolbarTitle.addEventListener("click", (e) => {
+            const link = e.target.closest(".breadcrumb-link");
+            if (link) {
+                e.preventDefault();
+                const dirPath = link.dataset.path;
+                this.navigateToDirectory(dirPath);
+            }
+        });
+
+        // 目录项点击处理（事件委托）
+        this.dom.contentArea.addEventListener("click", (e) => {
+            const dirItem = e.target.closest(".dir-item");
+            if (dirItem) {
+                const path = dirItem.dataset.path;
+                const type = dirItem.dataset.type;
+
+                if (type === "folder") {
+                    this.navigateToDirectory(path);
+                } else if (type === "file") {
+                    // 查找文件节点并打开
+                    const findFile = (nodes, filePath) => {
+                        for (const node of nodes) {
+                            if (node.path === filePath) return node;
+                            if (node.children && node.children.length) {
+                                const found = findFile(node.children, filePath);
+                                if (found) return found;
+                            }
+                        }
+                        return null;
+                    };
+                    const fileNode = findFile(this.dataManager.treeData || [], path);
+                    if (fileNode) {
+                        this.setActiveFile(fileNode, true);
+                    }
+                }
+            }
+        });
     }
 
     showToast(msg, duration = 3000) {
@@ -412,16 +451,8 @@ export class UIManager {
             if (targetNode.type === "file") {
                 this.setActiveFile(targetNode, true);
             } else {
-                // 如果是文件夹，展开并显示状态
-                this.revealInTree(targetNode.path);
-                this.dom.toolbarTitle.textContent = targetNode.name;
-                this.dom.contentArea.innerHTML = `
-                    <div class="empty-state">
-                        <div class="logo" style="font-size: 24px; margin-bottom: 16px; opacity: 0.5;">FOLDER</div>
-                        <p>正在浏览文件夹: <b>${targetNode.name}</b></p>
-                        <p style="font-size: 13px; margin-top: 8px; color: var(--text-secondary);">从左侧目录选择文件开始阅读</p>
-                    </div>
-                `;
+                // 如果是文件夹，使用目录视图
+                this.navigateToDirectory(targetNode.path);
             }
         } else {
             // 如果在当前树中找不到，可能是还没加载完或者路径不对
@@ -518,6 +549,74 @@ export class UIManager {
         }
     }
 
+    navigateToDirectory(dirPath) {
+        // 在树中查找目录节点
+        const findDirectory = (nodes, path) => {
+            for (const node of nodes) {
+                if (node.path === path) return node;
+                if (node.children && node.children.length) {
+                    const found = findDirectory(node.children, path);
+                    if (found) return found;
+                }
+            }
+            return null;
+        };
+
+        const tree = this.dataManager.treeData || [];
+        const dirNode = findDirectory(tree, dirPath);
+
+        if (dirNode && dirNode.type === "folder") {
+            // 展开并高亮该目录
+            this.revealInTree(dirPath);
+
+            // 构建面包屑
+            const pathParts = dirPath.split("/");
+            const breadcrumbHtml = pathParts
+                .map((part, index) => {
+                    const subPath = pathParts.slice(0, index + 1).join("/");
+                    return `<a href="#" class="breadcrumb-link" data-path="${subPath}">${part}</a>`;
+                })
+                .join(" / ");
+            this.dom.toolbarTitle.innerHTML = breadcrumbHtml;
+
+            // 统计文件数量
+            const children = dirNode.children || [];
+            const fileCount = children.filter(c => c.type === "file").length;
+            const folderCount = children.filter(c => c.type === "folder").length;
+
+            // 生成目录列表
+            const itemsHtml = children.map(child => {
+                const itemCount = child.type === "folder" && child.children
+                    ? child.children.filter(c => c.type === "file").length
+                    : null;
+                const itemCountText = itemCount !== null
+                    ? `<span class="dir-item-count">${itemCount} 个文件</span>`
+                    : "";
+
+                return `
+                    <div class="dir-item" data-path="${child.path}" data-type="${child.type}">
+                        <span class="dir-item-icon">${child.type === "folder" ? "▶" : "•"}</span>
+                        <span class="dir-item-name">${child.name}</span>
+                        ${itemCountText}
+                    </div>
+                `;
+            }).join("");
+
+            // 显示目录内容
+            this.dom.contentArea.innerHTML = `
+                <div class="directory-view">
+                    <div class="dir-header">
+                        <h1 class="dir-title">${dirNode.name}</h1>
+                        <p class="dir-stats">${folderCount} 个文件夹，${fileCount} 个文件</p>
+                    </div>
+                    <div class="dir-list">
+                        ${itemsHtml}
+                    </div>
+                </div>
+            `;
+        }
+    }
+
     renderTree(container, items, level = 0) {
         if (level === 0) container.innerHTML = "";
 
@@ -590,7 +689,7 @@ export class UIManager {
             }
         }
 
-        // 2. UI 状态更新：面包屑
+        // 2. UI 状态更新：面包屑（可点击路径）
         this.revealInTree(item.path);
         const pathParts = item.path.split("/");
         const breadcrumbHtml = pathParts
@@ -598,7 +697,8 @@ export class UIManager {
                 if (index === pathParts.length - 1) {
                     return `<span>${part.replace(/\.md$/, "")}</span>`;
                 }
-                return `${part} / `;
+                const dirPath = pathParts.slice(0, index + 1).join("/");
+                return `<a href="#" class="breadcrumb-link" data-path="${dirPath}">${part}</a> / `;
             })
             .join("");
         this.dom.toolbarTitle.innerHTML = breadcrumbHtml;
