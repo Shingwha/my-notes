@@ -39,11 +39,16 @@ export class UIManager {
 
         // 自定义图片渲染器：保存原始路径到 data 属性
         const renderer = new marked.Renderer();
-        const originalImageRenderer = renderer.image.bind(renderer);
         renderer.image = function(href, title, text) {
-            // 保存原始路径到 data-original-src 属性
-            const imgHtml = originalImageRenderer(href, title, text);
-            return imgHtml.replace('<img ', '<img data-original-src="' + href + '" ');
+            // 使用 DOM API 安全地构建图片标签
+            const img = document.createElement('img');
+            img.src = href;
+            img.alt = text;
+            img.setAttribute('data-original-src', href);
+            if (title) {
+                img.title = title;
+            }
+            return img.outerHTML;
         };
 
         // 1. 块级公式扩展 ($$ ... $$)
