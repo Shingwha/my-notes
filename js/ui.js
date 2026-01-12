@@ -746,10 +746,69 @@ export class UIManager {
                 });
         }
 
+        // 添加代码复制按钮
+        this.addCodeCopyButtons();
+
         // 处理图片加载
         if (this.imageCache) {
             this.loadImages(filePath);
         }
+    }
+
+    /**
+     * 为所有代码块添加复制按钮
+     */
+    addCodeCopyButtons() {
+        const codeBlocks = this.dom.contentArea.querySelectorAll("pre");
+        codeBlocks.forEach((pre) => {
+            // 跳过已有复制按钮的代码块
+            if (pre.querySelector('.code-copy-btn')) {
+                return;
+            }
+
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'code-copy-btn';
+            copyBtn.type = 'button';
+            copyBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                </svg>
+            `;
+
+            copyBtn.onclick = async () => {
+                const code = pre.querySelector('code');
+                const text = code.textContent;
+
+                try {
+                    await navigator.clipboard.writeText(text);
+                    copyBtn.classList.add('copied');
+                    setTimeout(() => {
+                        copyBtn.classList.remove('copied');
+                    }, 2000);
+                } catch (err) {
+                    // 降级方案：使用传统的复制方法
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    try {
+                        document.execCommand('copy');
+                        copyBtn.classList.add('copied');
+                        setTimeout(() => {
+                            copyBtn.classList.remove('copied');
+                        }, 2000);
+                    } catch (e) {
+                        console.error('复制失败:', e);
+                    }
+                    document.body.removeChild(textarea);
+                }
+            };
+
+            pre.appendChild(copyBtn);
+        });
     }
 
     /**
