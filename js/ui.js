@@ -37,6 +37,15 @@ export class UIManager {
             : `${themeConfig.mode}-${color}`;
         document.documentElement.setAttribute("data-theme", themeValue);
 
+        // 自定义图片渲染器：保存原始路径到 data 属性
+        const renderer = new marked.Renderer();
+        const originalImageRenderer = renderer.image.bind(renderer);
+        renderer.image = function(href, title, text) {
+            // 保存原始路径到 data-original-src 属性
+            const imgHtml = originalImageRenderer(href, title, text);
+            return imgHtml.replace('<img ', '<img data-original-src="' + href + '" ');
+        };
+
         // 1. 块级公式扩展 ($$ ... $$)
         const blockMath = {
             name: "blockMath",
@@ -84,7 +93,7 @@ export class UIManager {
             },
         };
 
-        marked.use({ extensions: [blockMath, inlineMath] });
+        marked.use({ renderer, extensions: [blockMath, inlineMath] });
 
         // 配置 marked 全局选项
         marked.setOptions({
@@ -660,12 +669,20 @@ export class UIManager {
      */
     async loadSingleImage(img, mdContentPath) {
         const { username, repo, token } = this.configManager.config;
-        const originalSrc = img.src;
+        // 获取原始路径（来自 data-original-src 属性）
+        const originalSrc = img.getAttribute('data-original-src') || img.src;
         let imagePath = null;
 
-        // 1. 判断 URL 类型
+        // 1. 先判断图片类型，决定是否需要处理
+
+        // Base64 内嵌图片，保持原样，不处理
+        if (originalSrc.startsWith('data:')) {
+            return;
+        }
+
+        // 外部完整 URL
         if (originalSrc.startsWith('http://') || originalSrc.startsWith('https://')) {
-            // 外部完整 URL，检查是否为 GitHub 图片
+            // 检查是否为 GitHub raw 图片
             if (originalSrc.includes('raw.githubusercontent.com')) {
                 // 提取图片路径
                 const match = originalSrc.match(/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\/(.+)/);
@@ -673,24 +690,27 @@ export class UIManager {
                     imagePath = match[1];
                 }
             } else {
-                // 非 GitHub 图片，保持原样
+                // 非 GitHub 外部图片，保持原样，不处理
                 return;
             }
-        } else if (originalSrc.startsWith('data:')) {
-            // Base64 内嵌图片，保持原样
-            return;
-        } else {
-            // 相对路径，转换为完整路径
+        }
+
+        // 相对路径，转换为完整路径
+        if (!imagePath) {
+            if (originalSrc.startsWith('http://') || originalSrc.startsWith('https://') || originalSrc.startsWith('data:')) {
+                // 已经处理过但没提取到路径，跳过
+                return;
+            }
             const mdDir = mdContentPath.split('/').slice(0, -1).join('/');
             imagePath = mdDir ? `${mdDir}/${originalSrc}` : originalSrc;
         }
 
+        // 无法解析的路径，保持原样
         if (!imagePath) {
-            // 无法解析的路径，保持原样
             return;
         }
 
-        // 2. 显示加载状态
+        // 2. 只处理需要缓存的图片（内部图片、GitHub 图片），显示加载状态
         img.style.opacity = '0.5';
         img.alt = '加载中...';
 
@@ -706,10 +726,12 @@ export class UIManager {
                 img.src = blobUrl;
                 img.style.opacity = '1';
                 img.alt = imagePath.split('/').pop();
+                console.log('[ImageLoader] 缓存命中:', imagePath);
                 return;
             }
 
             // 4. 缓存未命中，加载数据
+            console.log('[ImageLoader] 加载图片:', imagePath);
             const blob = await this.dataManager.getImageContent(imagePath);
 
             // 5. 存入缓存
