@@ -4,212 +4,105 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**My Notes** is a static web-based Markdown note viewer for browsing GitHub repositories. It displays `.md` files in a sidebar tree and renders them with Marked.js, KaTeX, and Prism.js.
+**My Notes** is a pure static web application for browsing Markdown notes stored in GitHub repositories. It runs entirely in the browser with no build tools or backend server required.
 
-**Live Demo**: https://shingwha.github.io/my-notes/
+### Key Features
+- Fetches and renders Markdown files from GitHub repositories (public or private)
+- Supports GitHub Personal Access Tokens for private repository access
+- Image caching using IndexedDB
+- KaTeX math rendering and Prism.js syntax highlighting
+- 14 theme combinations (2 modes × 7 colors)
+- Hash-based routing for shareable links
 
 ---
 
-## Local Development
+## Development Commands
 
-This is a **pure static application** - no build tools, bundlers, or package managers.
-
-### Starting a Local Server
-
-**Windows (Recommended)**:
+### Local Development
 ```bash
+# Windows - Double-click to start
 start.bat
-```
 
-**Manual Options**:
-```bash
-# Python 3
+# Manual Python server
 python -m http.server 8080
 
-# Node.js
+# Manual Node.js server
 npx http-server -p 8080
-
-# VS Code: Right-click index.html → "Open with Live Server"
 ```
 
-### No Build Process
+The application runs at `http://localhost:8080`. Press `Ctrl+C` to stop the server.
 
-- Edit `index.html`, `css/styles.css`, or `js/*.js` directly
-- Changes reflect immediately after browser refresh
-- No npm, no webpack, no transpilation
+### No Build Process
+This is a **pure static HTML/CSS/JS application** with no build step. Simply edit files and refresh the browser to see changes.
 
 ---
 
 ## Architecture
 
-### Module Pattern (ES6 Classes)
+### Module Structure
 
-The app uses three core modules with clear separation of concerns:
+The application uses ES6 modules with four main classes:
 
-| Module | File | Responsibility |
-|--------|------|----------------|
-| `ConfigManager` | `js/config.js` | GitHub repo config, token storage, URL parsing |
-| `DataManager` | `js/data.js` | GitHub API communication, tree building, content fetching |
-| `UIManager` | `js/ui.js` | DOM manipulation, event handling, markdown rendering |
-
-Entry point: `js/main.js` (initializes all three modules and exposes globals for debugging)
+```
+js/
+├── main.js       # Entry point - initializes all modules
+├── config.js     # ConfigManager - config, tokens, theme, URL detection
+├── data.js       # DataManager - GitHub API communication
+├── ui.js         # UIManager - DOM rendering, event handling
+└── cache.js      # ImageCache - IndexedDB image storage
+```
 
 ### Data Flow
 
-```
-User Input → UIManager → ConfigManager → DataManager → GitHub API
-                ↓                                      ↓
-           localStorage ←────────────────────────── JSON Response
-                ↓
-            UIManager.renderMarkdown()
-                ↓
-            Marked.js + KaTeX + Prism.js → HTML Output
-```
+1. **Config Detection Priority** (config.js:15-20):
+   - URL parameters (`?user=xxx&repo=xxx`)
+   - Hash routing (`#/user/repo/path`)
+   - GitHub Pages domain detection
+   - localStorage fallback
+
+2. **Tree Building** (data.js:22-64):
+   - Single GitHub API call: `/repos/{owner}/{repo}/git/trees/HEAD?recursive=1`
+   - Filters for `.md` files only
+   - Converts flat paths to nested tree structure
+   - Filters out folders containing no markdown files
+
+3. **Image Loading** (ui.js:659-762):
+   - Relative paths resolved against markdown file location
+   - Cached in IndexedDB with 7-day expiration
+   - Private repos: GitHub API with token
+   - Public repos: raw.githubusercontent.com
+
+### Key Implementation Details
+
+**Token Management**: Tokens are stored per-repo in `localStorage.blog_tokens_v1` as a dictionary, allowing seamless switching between multiple private repositories.
+
+**Theme System**: CSS variable cascade with 5 layers (root → mode → color → component → utilities). Theme format: `{mode}-{color}` (e.g., `dark-purple`). Blue color uses simplified format (`light`/`dark` only) for backward compatibility.
+
+**Hash Routing**: Format `#/{username}/{repo}/{optional-path}`. Switching repositories via hash automatically loads the corresponding saved token.
 
 ---
 
-## Key Patterns
+## External Dependencies (CDN)
 
-### URL Configuration Priority
-
-```javascript
-URL Parameters > Hash Route > Domain Detection > localStorage
-```
-
-ConfigManager detects repo from:
-1. `?user=xxx&repo=yyy&path=zzz` (URL params)
-2. `#/xxx/yyy/zzz` (hash routing)
-3. `github.com/user/repo` (GitHub URL)
-4. `username.github.io/repo` (GitHub Pages)
-
-### Token Storage
-
-```javascript
-// Tokens stored per-repo in localStorage
-key: "username/repo".toLowerCase()
-value: "github_pat_xxxx"
-```
-
-When switching repos, the corresponding token is auto-loaded.
-
-### GitHub API Strategy
-
-| Scenario | Method |
-|----------|--------|
-| **Public repo** | `raw.githubusercontent.com/...` (no headers, no CORS) |
-| **Private repo** | `api.github.com/repos/.../contents/...` with `Accept: application/vnd.github.v3.raw` |
-| **Tree structure** | `api.github.com/repos/.../git/trees/HEAD?recursive=1` (single call, cached) |
-
-### Error Types
-
-```javascript
-"AUTH_REQUIRED"           // 401 - Invalid/expired token
-"NOT_FOUND_OR_PRIVATE"    // 404 - Wrong repo OR private repo without token
-"RATE_LIMIT_OR_FORBIDDEN" // 403 - API limits or insufficient token permissions
-"FETCH_ERROR"             // Other network errors
-```
-
-Error handling in `ui.js:refreshData()` shows contextual help messages and "前往配置" button when appropriate.
+All loaded via CDN in `index.html`:
+- **marked@11.1.1** - Markdown parsing
+- **katex@0.16.9** - Math rendering
+- **prismjs@1.29.0** - Code highlighting (bash, js, ts, python, markdown)
 
 ---
 
-## Theme System
+## Common Tasks
 
-- **5-layer CSS variable structure** in `css/styles.css`
-- **14 themes**: 2 modes (light/dark) × 7 colors (blue, green, purple, orange, red, pink, rose)
-- Toggle via **palette icon** in sidebar header
-- Storage format: `localStorage` stores `"light"` (default blue) or `"dark-purple"` (mode + color)
-- Theme applied immediately via inline script in `<head>` to prevent flash
-- Accent color drives links, buttons, focus states, and active borders
+### Adding a New Prism Language
+1. Add CSS link in `<head>`: `prism-{lang}.min.css`
+2. Add script tag before closing `</body>`: `prism-{lang}.min.js`
 
----
+### Modifying Theme Colors
+Edit `css/styles.css` lines 79-120+ where accent colors are defined per `[data-theme="..."]` selector.
 
-## Hash Routing
-
-Format: `#/user/repo/path/to/file.md`
-
-- `#/user/repo` → Shows home (folder list)
-- `#/user/repo/docs` → Root path set to `docs/`
-- `#/user/repo/docs/note.md` → Renders that note
-
-Switching hash to different repo triggers:
-1. Config update
-2. Token reload for that repo
-3. Tree cache clear (`dataManager.treeData = null`)
-4. Data refresh
-
-Implementation in `ui.js:handleRouting()` at line 304.
-
----
-
-## Dependencies (CDN)
-
-- **Marked.js** v11.1.1 - Markdown parsing
-- **KaTeX** v0.16.9 - Math formulas (custom `$$...$$` and `$...$` extensions)
-- **Prism.js** v1.29.0 - Syntax highlighting (bash, js, ts, python, markdown)
-- **Google Fonts** - IBM Plex Mono/Serif + Inter
-
----
-
-## File Structure
-
-```
-├── index.html           # Main entry (modular version)
-├── index_old.html       # Legacy single-file - can run via file:// protocol
-├── start.bat            # Windows launcher - auto-detects Python/Node
-├── README.md            # Demo URL only
-├── 部署教程.md           # Chinese deployment guide
-├── css/
-│   └── styles.css       # 5-layer theme system (1300+ lines)
-├── js/
-│   ├── main.js          # Entry: inits modules, exposes debug globals
-│   ├── config.js        # ConfigManager: tokens, URL detection, localStorage
-│   ├── data.js          # DataManager: GitHub API, tree building, caching
-│   └── ui.js            # UIManager: DOM, markdown rendering, events
-└── example_notes/       # Sample markdown for testing
-```
-
----
-
-## Testing Changes
-
-1. Start local server: `start.bat`
-2. Open http://localhost:8080
-3. Edit files and refresh browser (no build step)
-4. Check browser console for errors
-5. **Debug globals** (exposed in main.js):
-   - `window.ui` - UIManager instance (DOM, rendering, events)
-   - `window.config` - ConfigManager instance (tokens, settings)
-   - `window.data` - DataManager instance (API calls, tree cache)
-
-## Keyboard Shortcuts
-
-| Key | Action |
-|-----|--------|
-| `Ctrl+F` / `Cmd+F` | Focus search box |
-| `Escape` | Close settings modal / theme panel / mobile sidebar |
-
-## Settings UX Patterns
-
-- **Token auto-fill**: When changing username/repo in settings, the stored token for that repo auto-fills
-- **Quick import**: Paste any GitHub URL to auto-parse user/repo/path
-- **Per-repo tokens**: Tokens stored as `"user/repo"` keys, automatically switched when changing repos
-
----
-
-## Deployment to GitHub Pages
-
-1. Push to repository
-2. Settings → Pages → Source: `Deploy from a branch` → `main` → `/ (root)`
-3. Access at `https://username.github.io/repo`
-
----
-
-## Notes
-
-- All markdown files end with `.md` (case-insensitive filtering)
-- Folders without `.md` files are **hidden from tree** (filtered in `data.js:buildTree`)
-- Sidebar collapses on mobile (width ≤ 1024px) via CSS media query
-- Search filters **filenames only** client-side (no full-text search)
-- Chinese language support throughout UI and comments
-- **index_old.html** is a legacy single-file version that works without HTTP server (file:// protocol)
+### Debugging
+All modules expose `window.*` globals for console debugging:
+- `window.config` - ConfigManager instance
+- `window.data` - DataManager instance
+- `window.ui` - UIManager instance
+- `window.imageCache` - ImageCache instance
