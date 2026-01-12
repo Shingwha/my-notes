@@ -176,9 +176,15 @@ export class DataManager {
     const { username, repo } = this.configManager.config;
     const hasToken = !!this.configManager.config.token;
 
+    // 获取默认分支名（首次调用时缓存）
+    if (!this.defaultBranch) {
+      await this._fetchDefaultBranch();
+    }
+    const branch = this.defaultBranch || 'main';
+
     if (hasToken) {
       // 私有仓库：通过 GitHub API 获取
-      const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${imagePath}`;
+      const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${imagePath}?ref=${branch}`;
       const res = await fetch(apiUrl, {
         headers: {
           ...this.headers,
@@ -193,7 +199,7 @@ export class DataManager {
       return await res.blob();
     } else {
       // 公有仓库：从 raw.githubusercontent.com 获取
-      const rawUrl = `https://raw.githubusercontent.com/${username}/${repo}/HEAD/${imagePath}`;
+      const rawUrl = `https://raw.githubusercontent.com/${username}/${repo}/${branch}/${imagePath}`;
       const res = await fetch(rawUrl);
 
       if (!res.ok) {
@@ -201,6 +207,27 @@ export class DataManager {
       }
 
       return await res.blob();
+    }
+  }
+
+  /**
+   * 获取仓库的默认分支名
+   * @private
+   */
+  async _fetchDefaultBranch() {
+    const { username, repo } = this.configManager.config;
+    try {
+      const res = await fetch(`https://api.github.com/repos/${username}/${repo}`, {
+        headers: this.headers
+      });
+      if (res.ok) {
+        const data = await res.json();
+        this.defaultBranch = data.default_branch;
+        console.log('[DataManager] 默认分支:', this.defaultBranch);
+      }
+    } catch (e) {
+      console.warn('[DataManager] 获取默认分支失败，使用 main:', e.message);
+      this.defaultBranch = 'main';
     }
   }
 }
