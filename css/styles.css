@@ -530,8 +530,8 @@ body {
     width: 32px;
     height: 32px;
     padding: 0;
-    border: 1.5px solid var(--border-color);
-    background: var(--bg-paper);
+    border: 1.5px solid var(--code-border);
+    background: var(--code-bg);
     color: var(--text-secondary);
     border-radius: 4px;
     cursor: pointer;
