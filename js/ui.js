@@ -11,6 +11,8 @@ export class UIManager {
         this.toastTimer = null;
         // Blob URL 内存管理
         this.blobUrls = new Set();
+        // 存储当前笔记的原始 Markdown
+        this.currentRawMarkdown = null;
 
         this.dom = {
             sidebar: document.getElementById("sidebar"),
@@ -113,6 +115,7 @@ export class UIManager {
         });
 
         this.bindEvents();
+        this.initFab();
         if (this.configManager.isValid()) {
             this.refreshData();
         } else {
@@ -736,6 +739,9 @@ export class UIManager {
     }
 
     renderMarkdown(md, filePath) {
+        // 保存原始 Markdown
+        this.currentRawMarkdown = md;
+
         this.dom.contentArea.innerHTML = `<div class="markdown-body">${marked.parse(md)}</div>`;
 
         if (window.Prism) {
@@ -1121,5 +1127,140 @@ export class UIManager {
             }
         };
         return colors[mode][color];
+    }
+
+    // ========== FAB 浮动操作按钮相关方法 ==========
+
+    /**
+     * 初始化 FAB 浮动操作按钮
+     */
+    initFab() {
+        const fabContainer = document.querySelector('.fab-container');
+        const fabMain = document.querySelector('.fab-main');
+        const fabItems = document.querySelectorAll('.fab-item');
+
+        // 主按钮点击
+        fabMain.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fabContainer.classList.toggle('open');
+
+            // 切换图标
+            const menuIcon = fabMain.querySelector('.fab-icon-menu');
+            const closeIcon = fabMain.querySelector('.fab-icon-close');
+            if (fabContainer.classList.contains('open')) {
+                menuIcon.style.display = 'none';
+                closeIcon.style.display = 'block';
+            } else {
+                menuIcon.style.display = 'block';
+                closeIcon.style.display = 'none';
+            }
+        });
+
+        // 子按钮点击
+        fabItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const action = item.dataset.action;
+
+                switch (action) {
+                    case 'copy-md':
+                        this.copyMarkdown(item);
+                        break;
+                    case 'scroll-top':
+                        this.scrollToTop();
+                        break;
+                    case 'scroll-bottom':
+                        this.scrollToBottom();
+                        break;
+                }
+
+                // 执行后自动收起
+                fabContainer.classList.remove('open');
+                const menuIcon = fabMain.querySelector('.fab-icon-menu');
+                const closeIcon = fabMain.querySelector('.fab-icon-close');
+                menuIcon.style.display = 'block';
+                closeIcon.style.display = 'none';
+            });
+        });
+
+        // 点击外部收起
+        document.addEventListener('click', (e) => {
+            if (!fabContainer.contains(e.target)) {
+                fabContainer.classList.remove('open');
+                const menuIcon = fabMain.querySelector('.fab-icon-menu');
+                const closeIcon = fabMain.querySelector('.fab-icon-close');
+                menuIcon.style.display = 'block';
+                closeIcon.style.display = 'none';
+            }
+        });
+    }
+
+    /**
+     * 复制当前笔记的 Markdown 原文
+     */
+    async copyMarkdown(buttonElement) {
+        if (!this.currentRawMarkdown) {
+            console.warn('没有可复制的内容');
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(this.currentRawMarkdown);
+
+            // 显示复制成功状态
+            buttonElement.classList.add('copied');
+            const originalHTML = buttonElement.innerHTML;
+            buttonElement.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            `;
+
+            setTimeout(() => {
+                buttonElement.classList.remove('copied');
+                buttonElement.innerHTML = originalHTML;
+            }, 2000);
+
+        } catch (err) {
+            // 降级方案
+            const textarea = document.createElement('textarea');
+            textarea.value = this.currentRawMarkdown;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            try {
+                document.execCommand('copy');
+                buttonElement.classList.add('copied');
+                setTimeout(() => {
+                    buttonElement.classList.remove('copied');
+                }, 2000);
+            } catch (e) {
+                console.error('复制失败:', e);
+            }
+
+            document.body.removeChild(textarea);
+        }
+    }
+
+    /**
+     * 滚动到内容顶部
+     */
+    scrollToTop() {
+        this.dom.contentViewport.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    /**
+     * 滚动到内容底部
+     */
+    scrollToBottom() {
+        this.dom.contentViewport.scrollTo({
+            top: this.dom.contentViewport.scrollHeight,
+            behavior: 'smooth'
+        });
     }
 }

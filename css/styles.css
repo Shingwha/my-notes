@@ -566,7 +566,7 @@ body {
 }
 
 .code-copy-btn.copied::after {
-    content: '✓';
+    content: "✓";
     color: #fff;
     font-size: 14px;
     font-weight: 600;
@@ -670,11 +670,13 @@ body {
 }
 
 .markdown-body img {
-    max-width: 85%;
+    max-width: 95%;
     display: block;
     margin: 2em auto;
     border-radius: 0;
-    transition: opacity 0.3s, filter 0.3s;
+    transition:
+        opacity 0.3s,
+        filter 0.3s;
 }
 
 /* 图片加载中状态 */
@@ -1352,7 +1354,7 @@ body {
 }
 
 .theme-color-btn::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 2px;
     background: var(--preview);
@@ -1371,12 +1373,12 @@ body {
 }
 
 .theme-color-btn.active::after {
-    content: '✓';
+    content: "✓";
     position: absolute;
     color: #fff;
     font-size: 16px;
     font-weight: bold;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     z-index: 1;
 }
 
@@ -1386,7 +1388,7 @@ body {
     color: #fff;
     font-size: 10px;
     font-weight: 600;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
     display: none;
 }
 
@@ -1508,4 +1510,133 @@ body {
     .dir-item-name {
         font-size: 13px;
     }
+}
+
+/* ========================================
+   浮动操作按钮 (FAB)
+   ======================================== */
+
+.fab-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+}
+
+/* 主按钮 */
+.fab-main {
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--border-color);
+    background: transparent;
+    color: var(--text-primary);
+    border-radius: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.fab-main:hover {
+    background: var(--accent-color);
+    color: #fff;
+    border-color: var(--accent-color);
+}
+
+.fab-main svg {
+    width: 16px;
+    height: 16px;
+    transition: stroke 0.2s;
+}
+
+/* 菜单容器 */
+.fab-menu {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(6px);
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fab-container.open .fab-menu {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+/* 子按钮 */
+.fab-item {
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--border-color);
+    background: transparent;
+    color: var(--text-primary);
+    border-radius: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.2s;
+    opacity: 0;
+    transform: translateY(6px) scale(0.9);
+}
+
+.fab-container.open .fab-item {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* 阶梯式展开动画 */
+.fab-container.open .fab-item:nth-child(1) {
+    transition-delay: 0ms;
+}
+.fab-container.open .fab-item:nth-child(2) {
+    transition-delay: 20ms;
+}
+.fab-container.open .fab-item:nth-child(3) {
+    transition-delay: 40ms;
+}
+
+.fab-item:hover {
+    background: var(--accent-color);
+    color: #fff;
+    border-color: var(--accent-color);
+}
+
+.fab-item svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Tooltip */
+.fab-tooltip {
+    position: absolute;
+    right: calc(100% + 6px);
+    padding: 3px 6px;
+    background: var(--bg-paper);
+    border: 1.5px solid var(--border-color);
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    color: var(--text-primary);
+}
+
+.fab-item:hover .fab-tooltip {
+    opacity: 1;
+}
+
+/* 复制成功状态 */
+.fab-item.copied {
+    background: var(--accent-color);
+    color: #fff;
+    border-color: var(--accent-color);
 }
