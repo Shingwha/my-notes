@@ -182,6 +182,20 @@ export class DataManager {
     }
     const branch = this.defaultBranch || 'main';
 
+    // 根据文件扩展名确定 MIME 类型
+    const ext = imagePath.split('.').pop().toLowerCase();
+    const mimeTypes = {
+      'svg': 'image/svg+xml',
+      'png': 'image/png',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'gif': 'image/gif',
+      'webp': 'image/webp',
+      'bmp': 'image/bmp',
+      'ico': 'image/x-icon'
+    };
+    const mimeType = mimeTypes[ext] || 'application/octet-stream';
+
     if (hasToken) {
       // 私有仓库：通过 GitHub API 获取
       const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${imagePath}?ref=${branch}`;
@@ -196,7 +210,9 @@ export class DataManager {
         throw new Error(`图片加载失败 (${res.status}): ${imagePath}`);
       }
 
-      return await res.blob();
+      const blob = await res.blob();
+      // 确保使用正确的 MIME 类型
+      return new Blob([blob], { type: mimeType });
     } else {
       // 公有仓库：从 raw.githubusercontent.com 获取
       const rawUrl = `https://raw.githubusercontent.com/${username}/${repo}/${branch}/${imagePath}`;
@@ -206,7 +222,9 @@ export class DataManager {
         throw new Error(`图片加载失败 (${res.status}): ${imagePath}`);
       }
 
-      return await res.blob();
+      const blob = await res.blob();
+      // 确保使用正确的 MIME 类型
+      return new Blob([blob], { type: mimeType });
     }
   }
 

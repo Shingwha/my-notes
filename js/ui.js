@@ -39,14 +39,15 @@ export class UIManager {
             : `${themeConfig.mode}-${color}`;
         document.documentElement.setAttribute("data-theme", themeValue);
 
-        // 自定义图片渲染器：保存原始路径到 data 属性
+        // 自定义图片渲染器：保存原始路径到 data 属性，不立即加载
         const renderer = new marked.Renderer();
         renderer.image = function(href, title, text) {
             // 使用 DOM API 安全地构建图片标签
             const img = document.createElement('img');
-            img.src = href;
-            img.alt = text;
+            // 不设置 src，让 loadSingleImage() 统一处理
+            img.alt = text || '加载中...';
             img.setAttribute('data-original-src', href);
+            img.style.opacity = '0.5'; // 初始加载状态
             if (title) {
                 img.title = title;
             }
@@ -860,7 +861,11 @@ export class UIManager {
                     imagePath = match[1];
                 }
             } else {
-                // 非 GitHub 外部图片，保持原样，不处理
+                // 非 GitHub 外部图片（如 placehold.co），直接使用原始 URL
+                img.src = originalSrc;
+                img.style.opacity = '1';
+                img.alt = text || originalSrc;
+                console.log('[ImageLoader] 外部图片:', originalSrc);
                 return;
             }
         }
