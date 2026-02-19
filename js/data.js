@@ -12,8 +12,9 @@ export class DataManager {
 
   get headers() {
     const h = { Accept: "application/vnd.github.v3+json" };
-    if (this.configManager.config.token) {
-      h["Authorization"] = `token ${this.configManager.config.token}`;
+    const token = this.configManager.config.token?.trim();
+    if (token) {
+      h["Authorization"] = `token ${token}`;
     }
     return h;
   }
