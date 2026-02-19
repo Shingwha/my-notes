@@ -344,11 +344,22 @@ export class UIManager {
             let showSettingsBtn = true;
 
             if (e.type === "NOT_FOUND_OR_PRIVATE") {
-                helpfulMessage =
-                    "<b>找不到仓库</b><br>可能是拼写错误，或者是私有仓库（需在配置中设置 Token）";
+                const hasToken = !!this.configManager.config.token?.trim();
+                helpfulMessage = hasToken
+                    ? "<b>找不到仓库</b><br>请检查用户名和仓库名是否正确"
+                    : "<b>找不到仓库</b><br>可能是拼写错误，或者是私有仓库（需设置 Token）";
             } else if (e.type === "AUTH_REQUIRED") {
                 helpfulMessage =
                     "<b>Token 验证失败</b><br>请检查配置中的 Token 是否正确";
+            } else if (e.type === "RATE_LIMIT_OR_FORBIDDEN") {
+                const hasToken = !!this.configManager.config.token?.trim();
+                if (e.message.includes("速率限制")) {
+                    helpfulMessage = hasToken
+                        ? "<b>API 速率限制</b><br>请求过于频繁，请稍后再试"
+                        : "<b>API 速率限制</b><br>无 token 每小时只能请求 60 次<br>设置 Token 可大幅提升限制";
+                } else {
+                    helpfulMessage = "<b>访问受限</b><br>权限不足，请检查 Token 是否正确";
+                }
             }
 
             this.dom.navTree.innerHTML = `

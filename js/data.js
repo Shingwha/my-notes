@@ -24,8 +24,11 @@ export class DataManager {
     if (this.treeData) return this.treeData;
 
     const { username, repo, path: rootPath } = this.configManager.config;
+    const hasToken = !!this.configManager.config.token?.trim();
     // HEAD 代表默认分支
     const url = `https://api.github.com/repos/${username}/${repo}/git/trees/HEAD?recursive=1`;
+
+    console.log('[DataManager] 请求仓库树:', { username, repo, hasToken });
 
     const res = await fetch(url, { headers: this.headers });
     if (!res.ok) {
@@ -37,12 +40,29 @@ export class DataManager {
         errorMsg = "Token 无效或已过期";
       } else if (res.status === 404) {
         // 404 对于 GitHub 来说，也可能是私有仓库但没有 Token
-        errorType = "NOT_FOUND_OR_PRIVATE";
-        errorMsg = "找不到仓库，或该仓库是私有的需设置 Token";
+        if (hasToken) {
+          // 有 Token 还 404，说明仓库真的不存在或 Token 权限不足
+          errorType = "NOT_FOUND";
+          errorMsg = "找不到仓库，请检查用户名和仓库名是否正确";
+        } else {
+          // 没有 Token 返回 404，可能是私有仓库
+          errorType = "NOT_FOUND_OR_PRIVATE";
+          errorMsg = "找不到仓库，或该仓库是私有的需设置 Token";
+        }
       } else if (res.status === 403) {
         errorType = "RATE_LIMIT_OR_FORBIDDEN";
-        errorMsg = "访问受限：权限不足或触发 API 限流";
+        // 检查是否是速率限制
+        const rateLimitRemaining = res.headers.get('X-RateLimit-Remaining');
+        if (rateLimitRemaining === '0') {
+          errorMsg = hasToken
+            ? "API 速率限制已用完，请稍后再试"
+            : "API 速率限制已用完（无 token 每小时 60 次），设置 Token 可提升限制";
+        } else {
+          errorMsg = "访问受限：权限不足";
+        }
       }
+
+      console.error('[DataManager] 请求失败:', { status: res.status, errorType, errorMsg, hasToken });
 
       const err = new Error(errorMsg);
       err.type = errorType;
